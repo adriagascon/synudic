@@ -563,12 +563,12 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
 
 \endignore}
 
-\def\gena{\mbox{${\mathtt{genx}}$}}
-\def\genb{\mbox{${\mathtt{geny}}$}}
-\def\genc{\mbox{${\mathtt{genr}}$}}
+\def\genx{\mbox{${\mathtt{genx}}$}}
+\def\geny{\mbox{${\mathtt{geny}}$}}
+\def\genr{\mbox{${\mathtt{genr}}$}}
 \def\gend{\mbox{${\mathtt{genu}}$}}
-\def\inputa{${\mathtt{inputa}}$}
-\def\inputb{${\mathtt{inputb}}$}
+\def\inputa{\mbox{${\mathtt{inputa}}$}}
+\def\inputb{\mbox{${\mathtt{inputb}}$}}
 \def\plus{\mbox{${\mathtt{plus}}$}}
 \def\minus{\mbox{${\mathtt{minus}}$}}
 \def\timess{\mbox{${\mathtt{times}}$}}
@@ -580,14 +580,14 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
   \begin{tabular}{|llll|}
     \hline
     Library: &
-    Arity $0$: & \gena, \genb, \genc, \gend, \inputa, \inputb &
+    Arity $0$: & \genx, \geny, \genr, \gend, \inputa, \inputb &
     \\ & 
     Arity $1$: &  \identity&
     \\ &
     Arity $2$: & \plus, \minus, \timess&
      \\ \hline
      Sketch: &
-     block $\mathtt{C}$: & \gena, \genb, \genc, \gend, \plus(-,-), \minus(-,-), \timess(-,-) & 5 lines
+     block $\mathtt{C}$: & \genx, \geny, \genr, \gend, \plus(-,-), \minus(-,-), \timess(-,-) & 5 lines
      \\ &
      block $\mathtt{CA}$: & \identity$(\mathtt{C})$ & 2 lines
      \\ &
@@ -725,9 +725,9 @@ These are the three arithmetic operations
 $\mathtt{plus}$, 
 $\mathtt{minus}$, and $\mathtt{times}$, along with
 a few random number generators, say 
-$\gena$,
-$\genb$,
-$\genc$, and
+$\genx$,
+$\geny$,
+$\genr$, and
 $\gend$ (that generate random numbers $x,y,r,u$).
 Apart from these seven components, we need three more components that help
 in specifying the ``sketch'' of the (unknown) protocol:
@@ -793,9 +793,9 @@ interpretation (as opposed to giving it the natural, or {\em{primal}}, interpret
 
 \begin{figure*}
     \begin{eqnarray*}
-      \ttrule{\gena}{}{\hoare{\theta}{v := \gena}{\theta \circ \{v \mapsto pol2vec(``x'')\}}}{ v_x = 1 \;\wedge\; \bigwedge_{i\neq x} v_i = 0}
+      \ttrule{\genx}{}{\hoare{\theta}{v := \genx}{\theta \circ \{v \mapsto pol2vec(``x'')\}}}{ v_x = 1 \;\wedge\; \bigwedge_{i\neq x} v_i = 0}
         \\
-        \ttrule{\genb}{}{\hoare{\theta}{v := \genb}{\theta \circ \{v \mapsto pol2vec(``y'')\}}}{ v_y = 1\;\wedge\; \bigwedge_{i\neq y} v_i = 0}
+        \ttrule{\geny}{}{\hoare{\theta}{v := \geny}{\theta \circ \{v \mapsto pol2vec(``y'')\}}}{ v_y = 1\;\wedge\; \bigwedge_{i\neq y} v_i = 0}
         \\
         \ttrule{\plus}{[\theta(y)\neq y, \theta(z)\neq z]}%
         {\hoare{\theta}{x := \plus(y,z)}{\theta \circ \{x \mapsto \theta(y) + \theta(z)\}}}{ \bigwedge_{i\in I} x_i = y_i + z_i}
@@ -912,9 +912,19 @@ likely secure, but security needs to be re-evaluated in a post processing step.
     \\
     security requirement (b) &
     $\bigwedge_{S_1\subseteq S}  \bigoplus_{v\in S_1} \mathtt{rseeds}(v) \neq \langle 0,0,0,0\rangle$ {\mbox{ where }} 
-    $S = \{\mathtt{val@}( ...)\}$
+    $S = \{\mathtt{ val@(CA,1), val@(CA,2), val@(BA,1), val@(BA,2)} \}$
+    \\ &
+    $\bigwedge_{S_1\subseteq S}  \bigoplus_{v\in S_1} \mathtt{rseeds}(v) \neq \langle 0,0,0,0\rangle$ {\mbox{ where }} 
+    $S = \{\mathtt{ val@(CB,1), val@(CB,2), val@(AB,1)} \}$
     \\ \hline
 \end{tabular}
+\caption{Security requirements captured as constraints on the dual
+values computed at the various program points. The function
+$\mathtt{isrand}$ checks if the value (computed at the given program
+point) is ``random'' and 
+$\mathtt{rseeds}$ returns the randomly-picked numbers that are used
+to compute the value (computed at that program point, in 1-hot encoding).}
+\label{fig:secure0}
 \end{figure*}
 
 For our example, we capture the security requirement by checking that 
@@ -934,8 +944,11 @@ If $\mathtt{rseeds}(v) = \langle b_1,b_2,b_3,b_4\rangle$,
 then define
 $\mathit{isrand}(p)$  to be the Boolean value
 $b_1\vee b_2\vee b_3\vee b_4$.
+The constraints that encode the
+security requirement are shown in Figure~\ref{fig:secure0}. 
 
-The logic to capture (b)  is long, but simple. 
+The logic to capture requirement (b)  is also shown in
+Figure~\ref{fig:secure0}. It is fairly simple too. 
 For example, if Alice obtains a set $S = \{v_1, v_2, \ldots\}$ of values
 from Bob and Charlie, then we check if, for some subset $S_1\subset S$ of $S$,
 it is the case that
@@ -956,7 +969,7 @@ if Alice receives values $bx$ and $b-bx$ (from Bob), then
 \mathtt{rseeds}(bx) \oplus \mathtt{rseeds}(b-bx) = \langle 0,0,0,0\rangle,
 \end{eqnarray*}
 Hence, this indicates Alice can possibly learn something new from the messages.
-In this case, Alice can indeed learn $b$ (since $b = bx - (b-bx)$.
+In this case, Alice can indeed learn $b$ (since $b = bx + (b-bx)$).
 Clearly, this is a conservative check. For example,
 if $v_1 = bx$ and $v_2 = bx$, then 
 $$
@@ -965,6 +978,45 @@ $$
 However, in this case, Alice can not learn $b$ from $bx$ (unless 
 it also knows the random number $x$), while our check concludes otherwise.
 
+
+\begin{figure}[ht]
+  \begin{tt}
+    \begin{tabular}{|ll|}
+      \hline
+      block C: & $v_1 := \genx; v_2 := \geny; v_3 := \genr;$
+      \\
+                 & $v_4 := \timess(v_1,v_2); v_5 := \minus(v_3,v_4)$
+      \\
+      block CA: & $v_5 := \identity(v_1); v_6 := \identity(v_3)$
+      \\
+      block A1: & $v_7 := \inputa$
+      \\
+      block $\mathtt{A2}$: & $v_8 := \minus(v_7, v_5)$
+      \\
+      block $\mathtt{AB}$: & $v_9 := \identity(v_8)$
+       \\ 
+       block $\mathtt{CB}$: & $v_{10} := \identity(v_5); v_{11} := \identity(v_2)$
+       \\ 
+       block $\mathtt{B1}$: & $v_{12} := \inputb$
+       \\
+       block $\mathtt{B2}$: & $v_{13} := \plus(v_{11}, v_{12}); v_{14} := \timess(v_9,v_{12});$ 
+       \\ &
+       $v_{15} := \plus(v_{14}, v_{10})$ 
+       \\ 
+       block $\mathtt{BA}$: & $v_{16} := \identity(v_{13})$ 
+       \\ 
+       block $\mathtt{A3}$: & $v_{17} := \timess(v_{16}, v_5); 
+       v_{18} := \minus(v_{17}, v_6)$
+       \\ 
+       block $\mathtt{B3}$: & $v_{18} := \identity(v_{15})$
+       \\ \hline
+    \end{tabular}
+  \end{tt}
+  \caption{The synthesized secure multiplication protocol. This is the 
+    same program whose English description is provided in the text. It is 
+  discovered by our synthesis tool using the inputs shown in 
+Figure~\ref{fig:ex0}, Figure~\ref{fig:rules0}, and Figure~\ref{fig:secure0}.}
+\end{figure}
 
 With this encoding of the security requirement, our sketch is complete,
 we run our synthesis tool, and it returns the following protocol:
@@ -1009,10 +1061,10 @@ the set of all mappings from dual
 variables $\Vd$ to the domain $\domd$.
 \begin{eqnarray*}
   % \mathit{Program\ \ states}
-  \psp \;\; := \;\;
+  \psp \; := \;
   \{ \sigma: \Vp \rightarrow \domp \}
 & \quad &
-  \psd \;\; := \;\;
+  \psd \; := \;
   \{ \ds: \Vd \rightarrow \domd \}
 \end{eqnarray*}
 We note that
@@ -1623,31 +1675,41 @@ $x=1$ holds at the end of the program (because it holds for
 %carry constraints on the input values.
 %\end{remark}
 
-We now associate this program with three different dual components.
-In all cases, $l_0,l_1,l_2,l_3$ are the four dual program variables.
-The first dual program propagates information pertaining
-to whether a value (computed at line $l_i$ in the primal) is a
-constant.
-The dual domain here $\domd$ is $\{\true,\false\}$, where, intuitively speaking,
+We now define three different dual components that can be combined
+with this primal program.
+In all the three cases, $l_0,l_1,l_2,l_3$ are the four dual program variables.
+The first dual program is shown in Column titled ``Dual 1'' in 
+Figure~\ref{fig:ex1}.
+The dual domain, $\domd$, is $\{\true,\false\}$, and the four
+program statements are associated with four different constraints
+(on the dual variables).
+Note that we have not yet defined what is a ``correct'' dual component
+for a given primal program.  Informally, however, the
+dual variables in the ``Dual 1'' program have a meaning:
 if the dual variable $l_i$
 is assigned $\true$, then the value computed on line $l_i$ in the primal
-is known to be a ``constant'' value, whereas if it is $\false$,
+is definitely a ``constant'' value, whereas if it is $\false$,
 then the value {\em{may or may not}} be a ``constant'' value.
+The four constraints defining the dual semantics ``Dual 1'' 
+propagate information pertaining
+to whether a value (computed at line $l_i$ in the primal) is a
+constant.
 %Since this is a straight-line program and every node is essential, 
 %the paths of interest
 %%Adria: Changing this back 
 %%are the four length $1$ paths in the program graph.
 %are the ones from the initial node to every other node, 
 %represented by lines $l_0, \ldots, l_3$.
-The first dual program, shown in Column titled ``Dual 1'',
-is designed to properly propagate the ``is-a-constant'' information.
+%The first dual program, shown in Column titled ``Dual 1'',
+%is designed to properly propagate the ``is-a-constant'' information.
 For example, the constraint on the third line says that
 if $l_2$ is $\true$ ($z$ is known to be a constant value), then
 necessarily $l_0$ and $l_1$ should be $\true$ ($x$ and $y$ should be constant
 values).
 %Since all vertices in a straight-line program are essential, we take the
 %conjunction of the four constraints as the meaning of the program.
-From the conjunction of the four constraints, it is evident that we can not have $l_3$
+From the conjunction of the four constraints, it is evident that 
+we can not have a model of the constraints where $l_3$ is
 equal to $\true$. Hence, we are unable to conclude (based on the
 first dual program) that $x$ on Line~3
 is necessarily a constant.
@@ -1656,13 +1718,29 @@ is necessarily a constant.
 \begin{remark}
   Why is the implication $\Rightarrow$ in the dual program at line 
   $l_3$, not an equivalence, $\Leftrightarrow$?
-  This is because the dual semantics should typically be designed to minimally
-  constrain the dual variables. 
-  Program statements that come further below Line $l_3$
-  in the program can also constrain the dual program variable $l_3$.
-  Specifically, even if $z$ is known to be a constant (Line $l_2$), we want to keep the option open
-  for $x$ (Line $l_3$) to be both ``is a constant'' and ``maybe not a constant'', as later
-  constraints may also force $x$ to be ``not a constant''.
+  There are two reasons. First, we can define the dual program statement
+  semantics in any way. So far, we have not defined any notion of what is 
+  a ``correct'', or ``consistent-with-primal'', dual interpretation.
+  We will get a different dual program if we use $\Leftrightarrow$.
+  Second, in this example, we are trying to design a dual program that
+  (informally) relates to the primal.
+  For this purpose, the dual semantics is typically designed to minimally
+  constrain the dual variables (because they will be constrained again
+  at program merge points).  In this paper, however, we focus only on
+  straight-line programs.
+
+  Further note that the constraint associated to line $y := 0.0$ is 
+  just $\mathit{true}$, and {\em{not}} $l_1 = \mathit{true}$. The dual semantics
+  leaves $l_1$ unconstrained here because $y := 0.0$ does not impose 
+  any constraint on the dual value of $l_1$ -- both $l_1 = \mathit{true}$
+  and $l_1 = \mathit{false}$ are consistent with $y := 0.0$.
+  Here, thinking in terms of greatest fixpoint, and the dual constraints 
+  removing possible models will be helpful.
+  %Program statements that come further below Line $l_3$
+  %in the program can also constrain the dual program variable $l_3$.
+  %Specifically, even if $z$ is known to be a constant (Line $l_2$), we want to keep the option open
+  %for $x$ (Line $l_3$) to be both ``is a constant'' and ``maybe not a constant'', as later
+  %constraints may also force $x$ to be ``not a constant''.
   % ADRIA: Is there any example for this that does not involve redefining x below on in a parallel branch?
   % If not we should say that x could be redefined.
 
@@ -1671,16 +1749,19 @@ is necessarily a constant.
 \end{remark}
 
 The second dual program that can be associated to the same primal program
-is shown in Column titled ``Dual 2''. In this case, the dual domain
-$\domd$ is $\{\zero,\int,\float\}$.
-If a dual variable has value $\zero$,
+is shown in Column titled ``Dual 2'' in Figure~\ref{fig:ex1}. 
+In this case, the dual domain,
+$\domd$, is $\{\zero,\- \int,\- \float\}$.
+In our formulation of the ``Dual 2'' constraints,
+we maintained the following intuition:
+if a dual variable has value $\zero$,
 then it means that the primal value computed at the corresponding program location is $0$;
 if it has value $\int$,
 then it means that the primal value computed at the corresponding program location is
 an integer; and
 if it has value $\float$,
 then we have the least information about the primal value computed at the corresponding program location.
-Having the value $\zero$ allows us to generate constraints (in the dual program) about preservation of
+Having the value $\zero$ in $\domd$ allows us to generate constraints (in the dual program) about preservation of
 that information; for example, see the constraint in Row $l_2$.
 One possible assignment that is consistent with the constraints in Column ``Dual 2''
 is $\langle l_0 \mapsto \float, l_1 \mapsto \zero, l_2\mapsto \zero, l_3\mapsto \int\rangle$.
@@ -1688,8 +1769,10 @@ Hence, the assertion $l_3\approx\int$ holds in the second dual semantics.
 
 \begin{remark}
   The first two dual programs are shown to demonstrate that dual programs
-  allow us to perform standard program analysis. In these cases, the dual meaning
-  is an ``abstraction'' of the concrete primal semantics. % We will revisit this point
+  can be used to encode some standard program analysis. 
+  In these cases, the dual meaning
+  is an ``abstraction'' of the concrete primal semantics 
+  in a sense to be defined later. % We will revisit this point
   % later. 
   However, the dual need not be an abstraction, and could ``compute'' information
   completely unrelated to the primal semantics, as shown in the third dual semantics.
@@ -2052,7 +2135,7 @@ variables (treated as inputs to $\pi$).
 \begin{definition}
 The dual component of a program $P$
 is an {\underline{abstraction}} of its primal component,
-in short {\underline{$\semd$ is an abstraction of $\semp$}},
+in short {{$\semd$ is an abstraction of $\semp$}},
 if there exists a {\em{concretization}} function
 $
  \gamma: \psd \rightarrow 2^{\psp}
@@ -2066,8 +2149,9 @@ for every complete path $\pi\in\paths(v_s,v_e)$ in the program,
 for every $\sigma\in\semp(\pi)(\psp)$, and
 for every $\theta\in\semd(\pi)(\psd)$,
 it is the case that
-if $\sigma|_{\UndefV(\pi)}\in\gamma(\theta)|_{\UndefV(\pi)}$, then
-   $\sigma|_{\DefV(\pi)}\in\gamma(\theta)|_{\DefV(\pi)}$.
+$$\mbox{if } \sigma|_{\UndefV(\pi)}\in\gamma(\theta)|_{\UndefV(\pi)}, 
+\mbox{ then }
+   \sigma|_{\DefV(\pi)}\in\gamma(\theta)|_{\DefV(\pi)}.$$
 %\end{itemize}
 \end{definition}
 
