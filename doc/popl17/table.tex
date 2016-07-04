@@ -1,0 +1,35 @@
+
+\begin{table}[t]
+\begin{center}
+\begin{tabular}{||l|c|c|c|c|c||}
+  \hline
+  Name & LoC & $|\Sig|$ & P{\small{rimal}} & D{\small{ual}} & T{\small{ime (s)}}
+  \\
+  \hline
+  Simple OT & 9 & 11 & No & Yes & $\sim 1$
+  \\
+  Naor-Pinkas OT & 16 & 11 & No & Yes & $\sim 100$
+  \\
+  Padding schemes & 12 & 5 & Yes & Yes & $\sim 1$
+  \\
+  Padding schemes & 8 & 5 & No & Yes & $\sim 1$
+  \\
+  BC Modes & 19 & 7 & Yes & Yes & $\sim 10$
+  \\
+  BC Modes & 24 & 7 & Yes & Yes & $\sim 100$
+  \\
+  BC Modes & 14 & 7 & No & Yes & $\sim 1$
+  \\
+  BC Modes & 19 & 7 & No & Yes & $\sim 1$
+  \\ \hline
+\end{tabular}
+\end{center}
+\caption{{\small{Synthesis with Duality: Various variants of padding schemes, block cipher modes,
+and oblivious transfer were synthesized. The table shows the number of lines synthesized
+({\tt{LoC}}),
+the number of function symbols given to the synthesizer (${\mathtt{|\Sig|}}$), 
+order of magnitude time taken to perform synthesis ({\tt{Time}}), and whether
+primal ({\tt{Primal}}) and dual ({\tt{Dual}}) semantics were used.}}}
+\label{table}
+\end{table}
+
