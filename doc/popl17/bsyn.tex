@@ -630,8 +630,8 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
         The sketch has $11$ straight-line program blocks:
         Alice executes code in blocks $\mathtt{A1,A2,A3}$,
         Bob executes code in blocks $\mathtt{B1,B2,B3}$, and
-        Charlie executes block $\mathtt{C}$. 
-        Blocks $\mathtt{CA,CB}$ represent values sent by Charlie to
+        Carol executes block $\mathtt{C}$. 
+        Blocks $\mathtt{CA,CB}$ represent values sent by Carol to
         respectively Alice and to Bob; the same convention is used in 
         naming of blocks $\mathtt{AB,BA}$.
         The syntax $\mathtt{plus((CA,A1),(CA,A1))}$ in the
@@ -661,8 +661,8 @@ solutions to privacy preserving computation~\cite{DBLP:conf/esorics/BogdanovLW08
 Our problem is as follows: find a protocol for Alice and Bob 
 to compute an additive share of the
 product of Alice's and Bob's private input values.
-Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}_{32}$,
-and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}_{32}$.
+Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}$,
+and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}$.
 For {\em correctness}, 
 our functional requirement is that
 $$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B).$$
@@ -672,7 +672,7 @@ Although there are several generic solutions for this problem,
 we will consider the case where Alice and Bob rely on a third
 {\em untrusted} party Carol that aids in the computation.
 Note that the privacy requirements for Carol are analogous
-to those for Alice and Bob, i.e she, must not learn anything 
+to those for Alice and Bob, i.e she must not learn anything 
 whatsoever about $\mathtt{input}(A)$ or $\mathtt{input}(B)$.
 
 
@@ -703,7 +703,7 @@ of the protocol, but they do not deviate from it nor collude.
 In other words, this model captures the situation when 
 an external attacker is allowed to look over
 either Alice, Bob, or Carol's shoulder during the computation, 
-but does cannot influence its outcome.
+but cannot influence its outcome.
 
 {\em{Check: In secure multi-party computation, the security requirement is formalized
 in the simulator paradigm by requiring the existence 
@@ -762,7 +762,7 @@ bound on the length of the straight-line programs
 used by each party (shown in brackets above).   
 The complete sketch is shown in Figure~\ref{fig:ex0}.
 So far, the problem formulation
-follows  the formulation of the component-based synthesis problem~\cite{bitvector}.
+is similar to the component-based synthesis problem~\cite{bitvector}.
 
 Once we have the library of ten components, and the structure of the protocol
 above, we have what can be called a ``sketch'' of the protocol.  Now, we need
@@ -809,7 +809,7 @@ interpretation (as opposed to giving it the natural, or {\em{primal}}, interpret
         {\hoare{\theta_0}{P_1;P_2}{\theta_2}}{}%
         \\
         \ttrule{\mathtt{check}}%
-        {\hoare{\mathtt{id}}{P}{\theta} \qquad \theta(e_1) = \theta(e_2)}%
+        {\hoare{\mathtt{id}}{P}{\theta} \qquad \theta(v)+\theta(w)=\theta(a)\theta(b)}%
         {\hoare{\mathtt{id}}{P}{\mathtt{assert(v+w=a*b)}}}%
         {v_{ab}+w_{ab}=1\;\wedge\; \bigwedge_{i\neq ab} v_i+w_i=0}%
       \end{eqnarray*}
@@ -825,12 +825,26 @@ to have a proof in this abstract domain.
 We can design proof rules that essentially perform
 symbolic execution to check an assertion 
 (see Figure~\ref{fig:rules0}).
-Rather than searching for the program, let us say we want to
-search for the proof in the proof system shown in Figure~\ref{fig:rules}.  
+We can use these proof rules to prove an assertion $v+w=a*b$ 
+at the end of program $P$ as follows:
+start with an identity substitution ($\mathtt{id}$), and update
+it by symbolically executing the code. For example, after execution
+of $v := \genx$, we get a new substitution that maps $v$ to the symbolic
+polynomial $x$.  Once we have the substitution $\theta$ resulting
+after symbolically executing the whole program, we can check if 
+$\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ are identical expressions.
+The proof rule for $\timess$ in Figure~\ref{fig:rules0} has a condition
+that allows multiplication to be used only on linear polynomials (so that
+the result is atmost quadratic).
+
+Rather than searching for the correct program, let us say we want to
+search for the proof in the proof system shown in Figure~\ref{fig:rules0}.  
 Note that the
 elements in the chosen abstract domain are parameterized
 by $27$ parameters -- namely, the coefficients of all degree $1$ and degree $2$
 monomials over the six variables ($C(6,1) + C(6,2) + C(6,1) = 6 + 15 + 6 = 27$).
+Finding the proof is the same as finding the $27$ parameters for each program
+line.
 Let $L = \{x,y,r,u,a,b\}$ and $NL = \{ij \mid i\neq j, i\in L, j\in L\}\cup \{ii \mid i\in L\}$.
 If $v$ is a program variable, then it is associated with
 $27$ dual  variables, namely, $v_i$, where index $i$ ranges over the set
@@ -942,7 +956,7 @@ Let $\mathtt{rseeds}(v)$ be a bitvector of length $4$ that denotes if
 $x$, $y$, $r$, or $u$ is present in $v$.
 If $\mathtt{rseeds}(v) = \langle b_1,b_2,b_3,b_4\rangle$,
 then define
-$\mathit{isrand}(p)$  to be the Boolean value
+$\mathtt{isrand}(p)$  to be the Boolean value
 $b_1\vee b_2\vee b_3\vee b_4$.
 The constraints that encode the
 security requirement are shown in Figure~\ref{fig:secure0}. 
@@ -950,7 +964,7 @@ security requirement are shown in Figure~\ref{fig:secure0}.
 The logic to capture requirement (b)  is also shown in
 Figure~\ref{fig:secure0}. It is fairly simple too. 
 For example, if Alice obtains a set $S = \{v_1, v_2, \ldots\}$ of values
-from Bob and Charlie, then we check if, for some subset $S_1\subset S$ of $S$,
+from Bob and Carol, then we check if, for some subset $S_1\subset S$ of $S$,
 it is the case that
 \begin{eqnarray*}
   \bigoplus_{v \in S_1}  \mathtt{rseeds}(v) & = & \langle 0,0,0,0\rangle
@@ -2253,7 +2267,7 @@ We call these two conditions as the Cartesian assumption.
   $U|_{\UndefV} \subseteq \gamma(\ds)|_{\UndefV}$ for every $\ds\in U'$.
   If $\semd$ is an abstraction of $\semp$,
   then
-  $\semp(P)(U) \subseteq \gamma(\ds)$ for every $\ds\in\semd(P)(U'))$.
+  $\semp(P)(U) \subseteq \gamma(\ds)$ for every $\ds\in\semd(P)(U')$.
 \end{theorem}
 
 \ignore{
