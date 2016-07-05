@@ -2312,6 +2312,18 @@ said to abstract a set of primal program states (Definition~\ref{def:abs0}).
   % satisfy the pre- and postcondition of $\gamma(\ds)$ since $0$ is also an integer.
 \end{example}
 
+We note that Definition~\ref{def:abs} allows us to compose programs
+while preserving abstractions if the composed programs modify a
+disjoint set of variables.  More precisely,
+if the dual component of $P_1$ is an abstraction of its primal
+and
+   the dual component of $P_2$ is an abstraction of its primal,
+then 
+   the dual component of $P_1;P_2$ is an abstraction of its primal,
+under the assumption that $P_2$ does not change the value of any
+variable in $P_1$ (and only treats those values as its inputs).
+
+
 \subsection{Duality Result}
 
 The main duality result for program analysis relates
@@ -2456,6 +2468,8 @@ by a ``search for proofs'' approach (satisfiability of dual asserts).
 Note that template-based methods for verification, also called
 constraint-based verification, also have the same effect~\cite{Gulwani08:PLDI,Gulwani13:STTT}
 and are an instance of the weak duality principle.
+
+\subsection{Finding Abstract Duals}\label{sec:findingduals}
 
 \begin{figure}[t]
   \begin{tabular}{c@{$\quad$}|@{$\quad$}c}
@@ -2606,12 +2620,11 @@ is the set of all $3$-tuples that relate the 2 inputs and 1 output of $f$.
 The following constraint imposes consistency of $vx_i$ values with respect to the primal semantics.
 \begin{eqnarray*}
   \phi_2 & = & \bigwedge_{\substack{i,j,k\in 1..9\\ f\in\Sig}}
-  % \begin{array}{l}
-    (a_{i1} = j \wedge a_{i2}=k \wedge f_i=f)\;\;\Rightarrow\;\;
-    % \\*[-2.5em] & & \qquad\qquad\qquad
-    (vx_j,vx_k,vx_i) \in \semp(f) 
-    %% vx_i=f^\int(vx_j,vx_k)
-  % \end{array}
+   \begin{array}{l}
+    (a_{i1} = j \wedge a_{i2}=k \wedge f_i=f)\;\Rightarrow\;
+    \\
+    \qquad (vx_j,vx_k,vx_i) \in \semp(f) 
+  \end{array}
 \end{eqnarray*}
 
 \smallskip\noindent
