@@ -37,4 +37,6 @@ if __name__ == "__main__":  # {{{
         solver = YicesSolver()
     solver.parse_input(args.input_file, parameters_dict,
         args.solver, args.all_solutions)
+    size = solver.get_estimated_search_space_size()
+    print 'SEARCH SPACE SIZE ~ {0}'.format(size)
     solver.solve()

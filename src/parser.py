@@ -58,6 +58,26 @@ class Sketch:
     def __str__(self):
         return self.name
 
+    def get_estimated_search_space_size(self):
+        size = {}
+        block_sizes = []
+        for b in self.blocks:
+            line_sizes = []
+            for c in b.constraints:
+                #print c.function.name, c.param_constraint
+                if len(c.param_constraint) > 1:
+                    line_size = reduce(
+                        lambda x, y: len(x) * len(y), c.param_constraint)
+                else:
+                    line_size =\
+                        len(c.param_constraint[0]) if c.param_constraint else 1
+                #print line_size
+                line_sizes.append(line_size)
+            size[b.name] = sum(line_sizes)*b.length
+            #print b.name, b.length, b.is_input, size[b.name]
+            block_sizes.append(size[b.name])
+        return reduce(lambda x, y: x * y, block_sizes, 1)
+
     def parse_input(self, filename, parameters_dict,
             solver, enum_all_solutions):
         """
@@ -103,7 +123,7 @@ class Sketch:
         is_primal = t['type'] == 'primal'
         name = t['interpretation_name']
         decls = t['decls'].asList()
-        decls = expand_forall_def(decls)
+        #decls = expand_forall_def(decls)
         try:
             ensure = t['ensure'].asList()
         except KeyError:
