@@ -3641,37 +3641,66 @@ generating and solving either
 the $\Phi_{\exists\forall}$ formula (in case there are only primals),
 the $\Phi_{\exists\exists}$ formula (in case there are only duals), or the 
 $\Psi_{\exists\forall}$ formula (in case there are both).
+Our synthesizer, along with all the examples 
+presented in the following Sections,
+and corresponding 
+SMT instances, are available at~\texttt{ommited for double-blindness}.
 Our emphasis in the descriptions below will be on the use of duality.
 
 \subsection{Block Cipher Modes}
 
 % \emph{Block cipher modes.} 
-We emulated the work of Malozemoff et al.~\cite{DBLP:conf/csfw/MalozemoffKG14} to
-synthesize block cipher modes of operations. {\em{Block ciphers}} are keyed, invertible
-functions that take a fixed length of bits (say 128 bits) to a random bit string
-of the same length. A {\em{block cipher mode}} $Enc$ uses the block cipher to encrypt
+%We emulated the work of Malozemoff et al.~\cite{DBLP:conf/csfw/MalozemoffKG14} to
+%synthesize block cipher modes of operations. 
+{\em{Block ciphers}} are keyed, invertible
+functions that map a fixed length bit string (say 128 bits) to a random bit string
+of the same length. A {\em{block cipher mode}} $Enc$ uses a block cipher to encrypt
 messages longer than this fixed length. We have {\em{two}} requirements:
 {\em{correctness}} of $Enc$, which is captured by the
 existence of a decryption algorithm $Dec$ such that $\forall k, m : Dec_k(
 Enc_k( m ) ) = m$, and {\em{security}}, which is expressed by the fact that no adversary with
 oracle access to $Enc$ is able to learn anything about random ciphertexts.
 
-Malozemoff et al. synthesize block cipher modes by generating every possible
-combination of instructions, filtering based on correctness, and then checking
-security. They are able to filter for correctness by checking if there is an
-appropriate path from the output nodes to the input nodes. 
-The key step is that, for checking security, they 
-treat the generated program as a graph and search for a labeling that
-satisfies certain inductive properties. They proof that any
-scheme that has such a labeling is secure against chosen-plaintext attacks,
-as long as a secure block cipher is used. 
-The graph labeling rules can be encoded as a dual program. 
+In~\cite{DBLP:conf/csfw/MalozemoffKG14}, Malozemoff et al. propose
+an algorithm for synthesis of block cipher modes.
+The algorithm proceeds by carefully enumerating candidate straight-line programs
+that correspond to the encoding of a single block and checking
+correctness and security for each of them.
+For the security check, the authors propose a 
+labeling system that guarantees that if a candidate straight-line program
+can be labelled satisfying certain constraints, 
+then it implements a secure block cipher.
+The search for the {\em existence} of a correct labelling
+is then implemented using an SMT solver.
+Regarding correctness, the authors propose a
+fix-point algorithm analogous to our decryptability check presented in the previous
+section.
+
+The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14}:
+a sound approximation technique for proving security,
+enables our synthesis approach based on dual interpretations.
+A remarkable distinction of our approach, as opposed to the
+enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
+is that we encode all the synthesis problem in a single logical constraint.
+
+%They are able to filter for correctness by checking if there is an
+%appropriate path from the output nodes to the input nodes. 
+%The key step is that, for checking security, they 
+%treat the generated program as a graph and search for a labeling that
+%satisfies certain inductive properties. They proof that any
+%scheme that has such a labeling is secure against chosen-plaintext attacks,
+%as long as a secure block cipher is used. 
+%The graph labeling rules can be encoded as a dual program. 
 % we 
 % translated their graph labeling rules directly into our synthesis tool as a dual
 % interpretation. 
-The dual program variables store the label assigned to the primal instruction,
-and the dual program emulates the rules of the graph labeling.
+%The dual program variables store the label assigned to the primal instruction,
+%and the dual program emulates the rules of the graph labeling.
 
+We present here two approaches to synthesize block cipher modes, 
+which highlight the flexibility of an approach to synthesis 
+based on a dual interpretation, as well as 
+an application of a duality principle.
 Our first approach at synthesis of block cipher modes, which is analogous to the 
 one in~\cite{TGD15:CADE}, is based on 
 specifying correctness 
@@ -3687,16 +3716,16 @@ and solving the $\Psi_{\exists\forall}$ formula shown in Section~\ref{sec:synthe
 
 The $\exists\forall$ approach has two main drawbacks: first, solving 
 $\Psi_{\exists\forall}$ turned out to be an expensive operation because 
-it required us to synthesize two programs at once. Moreover, 
+it required us to synthesize two programs at once, $Dec$ and $Enc$. Moreover, 
 it requires us to specify primal semantics for the block cipher
 used in the mode to be synthesized. This is not ideal, since
-a bad choice might be a source of unsoundness.
+a bad choice might be a source of unsoundness in the decryptability check.
 In the present work, we address both these issues using duality and 
-obtained a significant improvement with respect to~\cite{TGD15:CADE}.
-The crucial observation is that the
-correctness check used 
-in~\cite{DBLP:conf/csfw/MalozemoffKG14} can in fact be % an instance of the duality principle, 
-% and hence it can be 
+obtain a significant improvement with respect to~\cite{TGD15:CADE}
+and ~\cite{DBLP:conf/csfw/MalozemoffKG14}.
+The crucial observation is that the correctness check used 
+in~\cite{DBLP:conf/csfw/MalozemoffKG14} is in fact an instance of the duality principle, 
+ and hence it can be 
 encoded as a second dual program; that is,
 to ensure correctness 
 it is not necessary to synthesize a decryption scheme, but instead check for ``decryptability'',
