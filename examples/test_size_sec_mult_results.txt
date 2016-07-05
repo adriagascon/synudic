@@ -1,0 +1,62 @@
+SAT:
+
+secure_mult_1 1 0.00767588615417
+secure_mult_8 30 0.0464148521423
+secure_mult_4 625 0.197650194168
+secure_mult_5 5625 0.187430858612
+secure_mult_7 46656 0.073823928833
+secure_mult_6 202500 0.207093954086
+secure_mult_2 1679616 0.0879981517792
+secure_mult_9 15116544 0.633984088898
+secure_mult_10 377913600 1.20427513123
+secure_mult_3 1049760000 2.64424014091
+secure_mult_11 7727400000 4.14486289024
+secure_mult_12 44046180000 16.7366321087
+secure_mult_13 198207810000 12.2019381523
+secure_mult_14 317132496000 103.645164967
+secure_mult_15 851559480000 161.863999128
+
+
+secure_mult_1, 1, 0.00767588615417
+secure_mult_8, 30, 0.0464148521423
+secure_mult_4, 625, 0.197650194168
+secure_mult_5, 5625, 0.187430858612
+secure_mult_7, 46656, 0.073823928833
+secure_mult_6, 202500, 0.207093954086
+secure_mult_2, 1679616, 0.0879981517792
+secure_mult_9, 15116544, 0.633984088898
+secure_mult_10, 377913600, 1.20427513123
+secure_mult_3, 1049760000, 2.64424014091
+secure_mult_11, 7727400000, 4.14486289024
+secure_mult_12, 44046180000, 16.7366321087
+secure_mult_13, 198207810000, 12.2019381523
+secure_mult_14, 317132496000, 103.645164967
+secure_mult_15, 851559480000, 161.863999128
+
+
+secure_mult    11745648000 ~50 seconds
+    
+UNSAT??
+
+python src/main.py examples/secure_mult_1.sketch nc=5 na1=1 nb1=3 na2=2
+...
+python src/main.py examples/secure_mult_15.sketch nc=5 na1=1 nb1=3 na2=2
+python src/main.py examples/secure_mult_16.sketch nc=5 na1=2 nb1=3 na2=2
+
+
+secure_mult_2 <- Only arithmetic operations are to be determined
+secure_mult_3 <- Only (i) arithmetic operations and (ii) message contents for messages from C are to be determined
+secure_mult_4 <- Only message contents from C are to be determined
+secure_mult_5 <- Only message contents from C and from B are to be determined
+secure_mult_6 <- Only (i) arithmetic operations in C and (ii) message contents from C and from B are to be determined
+secure_mult_7 <- Only arithmetic operations in A and B are to be determined
+secure_mult_8 <- First of A's single operation and inputs is to be determined
+secure_mult_9 <- Only (i) arithmetic operations and (ii) message contents for messages from B 
+secure_mult_10 <- Only (i) arithmetic operations and (ii) message contents for messages from B and C are to be determined
+secure_mult_11 <- (i) arithmetic operations in A, B to be determined and (ii) C is unrestricted.
+secure_mult_12 <- (i) arithmetic operations in A to be determined and (ii) B, and C are unrestricted.
+secure_mult_13 <- (i) arithmetic operations in second part of A's job to be determined and (ii) A's first part, B, and C are unrestricted.
+secure_mult_14 <- Pretty much unrestricted, only communication pattern is fixed
+secure_mult_16 <- Pretty much unrestricted, only communication pattern is fixed, and LA1 may have 2 instructions
+
+

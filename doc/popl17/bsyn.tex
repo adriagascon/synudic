@@ -6,6 +6,12 @@
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows,%
+                shapes,positioning}
+
+\usetikzlibrary{calc}
+
 
 \newtheorem{definition}{Definition}
 \newtheorem{proposition}{Proposition}
@@ -3906,6 +3912,58 @@ quickly generate plausible schemes.
 \input{table}
 
 \subsection{Experimental Results}
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+  %\useasboundingbox (-1,-1) rectangle (11,11); 
+  \tikzset{DataStyle/.style = {draw=black, thick, shape=circle, inner sep=2pt, text=black}}
+  \tikzset{OpStyle/.style = {draw=black, thick, shape=rectangle, inner sep=3pt, text=black}}
+  \tikzset{EdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+  \tikzset{PortEdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+
+
+  \node(1)[DataStyle]{$C$};
+  \node(2)[DataStyle, below left=of 1]{$A$};
+  \node(3)[DataStyle, below right=of 1]{$B$};
+  \node(4)[left=of 2, xshift=10pt]{{\small $\mathtt{input}(A)$}};
+  \node(5)[right=of 3, xshift=-10pt]{{\small$\mathtt{input}(B)$}};
+  \node(6)[below=of 2]{{\small $\mathtt{output}(A)$}};
+  \node(7)[below=of 3]{{\small $\mathtt{output}(B)$}};
+  
+     \draw[EdgeStyle](1) to node[above left]{$(v_1, v_2)$} (2);
+     \draw[EdgeStyle](1) to node[above right]{$(v_3, v_4)$} (3);
+     \draw[EdgeStyle, bend left](2) to node[below]{$(v_5, v_6)$} (3);
+     \draw[EdgeStyle, bend left](3) to node[below]{$(v_7, v_8)$} (2);
+      \draw[EdgeStyle](4) to node{} (2);
+      \draw[EdgeStyle](5) to node{} (3);
+      \draw[EdgeStyle](2) to node{} (6);
+      \draw[EdgeStyle](3) to node{} (7);
+
+
+
+ \end{tikzpicture}
+\label{fig:example-topology}
+\caption{The synthesis problem is to find programs 
+$P_C, P_{A,1}, P_{B,1}, P_{A,1}, P_{B,1}$ such that
+$(v_1, \ldots, v_4) = P_c()$,
+$(v_5, v_6) = P_{A,1}(v_1, v_2, \mathtt{input}(A))$,
+$(v_7, v_8) = P_{B,1}(v_3, v_4, \mathtt{input}(B))$,
+$\mathtt{output}(A) = P_{A,2}(v_1, v_2, v_7, v_8, \mathtt{input}(A))$,
+$\mathtt{output}(B) = P_{B,2}(v_1, v_2, v_5, v_6, \mathtt{input}(B))$,
+and $\mathtt{output}(B)$ and $\mathtt{output}(A)$
+satisfy our correcteness requirement and the overall
+protocol satisfies our security requirement.
+}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
+\label{fig:plot-sec-mult}
+\end{figure}
+
+
 Table~\ref{table} presents some statistics on our effort to synthesize 
 several different protocols for the above three problems. 
 For oblivious tranfer (OT), the approach based on using both primal and dual
