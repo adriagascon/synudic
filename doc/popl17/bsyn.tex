@@ -2139,14 +2139,44 @@ using dual to analyze the primal is an example of duality
 % semantics {\em{is}} related to the primal semantics.
 %
 
-For a program path $\pi$, let us assume that we have
-a partition of the primal program variables $\V$
-used in $\pi$ into two sets: $\UndefV(\pi)$ and $\DefV(\pi)$.
-Intuitively, $\DefV(\pi)$ contains variables that are
-defined in $\pi$ and $\UndefV(\pi)$ contains all the other
-variables (treated as inputs to $\pi$).
+A {\em{concretization function}} $\gamma$ is a mapping from 
+the set $\psd$ dual program states to the powerset $2^\psp$ of
+primal program states; that is,
+$$ \gamma: \psd \rightarrow 2^{\psp} $$
 
-\begin{definition}
+\begin{definition}\label{def:abs0}
+A set $Sd$ of dual states is an {\em{abstraction}} of 
+a set $Sp$ of primal states with respect to a concretization
+function $\gamma$ and a subset $V\subseteq\Vp$ of primal variables, 
+if
+$$
+  Sp|_V \;\subseteq\; \bigcap_{\theta\in Sd}\gamma(\theta)|_V 
+$$
+where the notation $X|_V$ denotes the projection of the set $X$
+onto the $V$ components (that is, we consider assignments to the
+variables in $V$ and ignore the other variables).
+\end{definition}
+
+\begin{remark}
+  In sharp contrast to the above,
+  recall that in the usual notion of abstraction (that relates two primals),
+  we say $Sp_2$ is an abstraction of $Sp_1$ if 
+  $Sp_1 \subseteq \bigcup_{s\in Sp_2}\gamma(s)$.
+\end{remark}
+
+Before we define the notion of abstraction on a program $P$,
+we need to assume that 
+the primal program variables $\Vp$ used in $P$
+can be partitioned into two sets: $\UndefV(P)$ and $\DefV(P)$,
+where $\DefV(P)$ contains variables that are
+assigned a value (at some location) in $P$ 
+and $\UndefV(P)$ contains all the other
+variables (treated as inputs to $P$).
+Note that conversion to
+static single assignment (SSA) form can help
+satisfy this assumption.
+
+\begin{definition}\label{def:abs}
 The dual component of a program $P$
 is an {\underline{abstraction}} of its primal component,
 in short {{$\semd$ is an abstraction of $\semp$}},
@@ -2159,32 +2189,46 @@ that
 %\begin{itemize}\itemsep=0em
   %\item
 % for every pair of essential vertices $v_{i-1},v_i\in EV$ of the program $P$,
-for every complete path $\pi\in\paths(v_s,v_e)$ in the program, 
-for every $\sigma\in\semp(\pi)(\psp)$, and
-for every $\theta\in\semd(\pi)(\psd)$,
-it is the case that
-$$\mbox{if } \sigma|_{\UndefV(\pi)}\in\gamma(\theta)|_{\UndefV(\pi)}, 
-\mbox{ then }
-   \sigma|_{\DefV(\pi)}\in\gamma(\theta)|_{\DefV(\pi)}.$$
+for every $Sp\subseteq \psp$, 
+for every $Sd\subseteq \psd$,
+if $Sd$ is an abstraction of $Sp$ w.r.t $\gamma$ and $\UndefV(P)$,
+then
+$\semd(P)(Sd)$ is an abstraction of $\semp(P)(Sp)$ w.r.t $\gamma$ and
+$\DefV(P)\cup\UndefV(P)$.
+% $$\mbox{if } \sigma|_{\UndefV(\pi)}\in\gamma(\theta)|_{\UndefV(\pi)}, 
+% \mbox{ then }
+   % \sigma|_{\DefV(\pi)}\in\gamma(\theta)|_{\DefV(\pi)}.$$
 %\end{itemize}
 \end{definition}
 
-Every element $\ds$ in the dual semantics
-$\semd(\pi)(\psd)$ of a program path $\pi$ 
-is treated as an ``assume-guarantee'' constraint
-in the above definition. It consists of a ``precondition'',
-which is the projection of $\gamma(\ds)$ on the input variables,
-and a ``postcondition'',
-which is the projection of $\gamma(\ds)$ on the defined variables.
-The abstraction definition just requires that
-if the concrete state satisfies the precondition,
-then it also satisfies the postcondition.
+\begin{remark}
+The definition of abstraction of programs (state transformers) given in
+Definition~\ref{def:abs} is similar to
+the notion of abstraction between primals: if we start with an abstraction
+of initial states, and apply the abstract transformer, we should get back
+an abstraction of the concretely transformed initial states.
+Definition~\ref{def:abs} says the same thing, but with the difference that
+we restrict to the set $\UndefV(P)$ when checking abstraction on the initial
+states, and use the new notion of when a set of dual program states is
+said to abstract a set of primal program states (Definition~\ref{def:abs0}).
+\end{remark}
+
+% Every element $\ds$ in the dual semantics
+% $\semd(\pi)(\psd)$ of a program path $\pi$ 
+% is treated as an ``assume-guarantee'' constraint
+% in the above definition. It consists of a ``precondition'',
+% which is the projection of $\gamma(\ds)$ on the input variables,
+% and a ``postcondition'',
+% which is the projection of $\gamma(\ds)$ on the defined variables.
+% The abstraction definition just requires that
+% if the concrete state satisfies the precondition,
+% then it also satisfies the postcondition.
 
 %The abstraction definition{\em{each}} (and not some) abstract assume-guarantee dual constraint.
-One key aspect to note in the above definition is that
-{\em{every}} reachable primal state $\sigma$ satisfies
-the assume-guarantee constraint generated from
-{\em{each}} (and not some) dual state.
+% One key aspect to note in the above definition is that
+% {\em{every}} reachable primal state $\sigma$ satisfies
+% the assume-guarantee constraint generated from
+% {\em{each}} (and not some) dual state.
 %Thus, intuitively, the constraints defined by a dual semantics
 %are at a ``meta'' level, which, if satisfiable, result in a
 %traditional abstraction of the primal semantics (for each solution).
@@ -2198,17 +2242,49 @@ the assume-guarantee constraint generated from
   One can verify that the second dual program in Figure~\ref{fig:ex1} is
   an abstraction of the primal program 
   under the
-  natural concretization function, where
-  $\zero$ maps to the value $0$,
-  $\int$ maps to the set of all integers,
-  $\float$ maps to the set of all numbers, and
-  the dual variables $l_0,\ldots,l_3$ are mapped to the program variables
-  defined on the corresponding lines; that is, respectively $x_0,y,z,x$.
-  An example dual state is $\ds = \{l_0=\float,l_1=\zero,l_2=\zero,l_3=\int\}$.
-  The concretization of this dual state is
-  $\gamma(\ds) = \{\sigma\mid \sigma(y)=\sigma(z)=0,\sigma(x)\mbox{ is an integer},
-  \sigma(x_0)\mbox{ is a number}\}$. 
+  natural concretization function $\gamma$, where for example,
+  \begin{eqnarray*}
+    \lefteqn{\gamma(\langle l_0 \mapsto \float, 
+                 l_1 \mapsto \zero, 
+                 l_2\mapsto \zero, 
+               l_3\mapsto \int\rangle) = }
+                 \\ &&
+                 \{\sigma\mid \sigma(x_0) \mbox{ is a number},
+                   \sigma(y)=\sigma(z)=0, 
+                 \sigma(x) \mbox{ is an int}\}
+  \end{eqnarray*}
+  % $\zero$ maps to the value $0$,
+  % $\int$ maps to the set of all integers,
+  % $\float$ maps to the set of all numbers, and
+  % the dual variables $l_0,\ldots,l_3$ are mapped to the program variables
+  % defined on the corresponding lines; that is, respectively $x_0,y,z,x$.
+  %An example dual state is $\ds = \{l_0=\float,l_1=\zero,l_2=\zero,l_3=\int\}$.
+  %The concretization of this dual state is
+  %$\gamma(\ds) = \{\sigma\mid \sigma(y)=\sigma(z)=0,\sigma(x)\mbox{ is an integer},
+  %\sigma(x_0)\mbox{ is a number}\}$. 
 %
+  We can see that $\semd$ is an abstraction of $\semp$ by noting that
+  it is so for each line of the program.
+  Consider the program $P$ consisting of the single line $l_1: y := 0.0;$. 
+  Here the set of primal input variables is $V_0=\{x_0\}$ and 
+  defined variables is $V_1=\{y\}$.
+  The set $Sd_0 = \{\theta\mid \theta(x_0)=\float\}$ is an 
+  abstraction of, say, 
+  $Sp_0 = \{\sigma\mid\sigma(x_0)\mbox{ is an integer}\}$ w.r.t $\gamma$
+  and the set of variables $V_0$.
+  To prove that the dual is an abstraction of the primal for $P$,
+  Definition~\ref{def:abs} requires us to show that $\semd(P)(Sd_0)$ is an
+  abstraction of $\semp(P)(Sp_0)$ wrt $\gamma$ and $V=V_0\cup V_1$.
+  We note that
+  $\semp(P)(Sp_0)|_V = \{\sigma \mid \sigma(y)=0.0, \sigma(x_0) {\mbox{ is an int}}\}$,
+  and
+  $\semd(P)(Sd_0)|_V = \{\theta \mid \theta(l_0)=\float\}$.
+  Note that the constraint coming from line $l_1$ is just $\mathit{true}$
+  and hence, $\theta(l_1)$ is really unconstrained: it can take any value.
+  We have to show that if we pick {\em{any}} value for $\theta(l_1)$, say
+  we pick $\zero$, 
+  $\semp(P)(Sp_0)|_V \subseteq \gamma(\langle l_0=\float,l_1=\zero)$,
+  which is clearly true.
   % Now consider the dual semantics of program path consisting of one line, namely line $l_2$.
   % One constraint we have there is $l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)$.
   % We have $z$ as the defined variable on line $l_2$, and $x,y$ as the input variables.
@@ -2248,27 +2324,29 @@ semantics is an abstraction of the primal semantics.
 % in program fragment $P_i$.
 % We assume the program $P$ is in static single assignment form, which
 % means the sets $\V_1,\ldots,\V_m$ are disjoint.
-We need two technical assumptions. First, the primal program variables
-$\V$ can be partitioned into input variables $\UndefV$ and defined variables
-$\DefV$ such that the input variables are not modified by the primal (in any
-program path). Second,
-% We say $\gamma$ satisfies the Cartesian assumption if
-the concretization function $\gamma$ respects this partition in the sense that
-% for any dual program state $\ds$ and any partition $V_1,V_2$ of variables,
-$\gamma(\ds) = \gamma(\ds)|_{\UndefV} \times \gamma(\ds)|_{\DefV}$ for any dual state $\ds$.
-We call these two conditions as the Cartesian assumption.
 
-\begin{theorem}\label{thm:duality}
-  Let $P$ be a program % in static single assignment form
-  and $\gamma$ be a concretization function such that
-  the Cartesian assumption holds.
-  Let $U\subseteq \psp$ be a set of primal initial states,
-  and let $U'\subseteq\psd$ be such that
-  $U|_{\UndefV} \subseteq \gamma(\ds)|_{\UndefV}$ for every $\ds\in U'$.
-  If $\semd$ is an abstraction of $\semp$,
-  then
-  $\semp(P)(U) \subseteq \gamma(\ds)$ for every $\ds\in\semd(P)(U')$.
-\end{theorem}
+
+% We need two technical assumptions. First, the primal program variables
+% $\V$ can be partitioned into input variables $\UndefV$ and defined variables
+% $\DefV$ such that the input variables are not modified by the primal (in any
+% program path). Second,
+% % We say $\gamma$ satisfies the Cartesian assumption if
+% the concretization function $\gamma$ respects this partition in the sense that
+% % for any dual program state $\ds$ and any partition $V_1,V_2$ of variables,
+% $\gamma(\ds) = \gamma(\ds)|_{\UndefV} \times \gamma(\ds)|_{\DefV}$ for any dual state $\ds$.
+% We call these two conditions as the Cartesian assumption.
+% 
+% \begin{theorem}\label{thm:duality}
+  % Let $P$ be a program % in static single assignment form
+  % and $\gamma$ be a concretization function such that
+  % the Cartesian assumption holds.
+  % Let $U\subseteq \psp$ be a set of primal initial states,
+  % and let $U'\subseteq\psd$ be such that
+  % $U|_{\UndefV} \subseteq \gamma(\ds)|_{\UndefV}$ for every $\ds\in U'$.
+  % If $\semd$ is an abstraction of $\semp$,
+  % then
+  % $\semp(P)(U) \subseteq \gamma(\ds)$ for every $\ds\in\semd(P)(U')$.
+% \end{theorem}
 
 \ignore{
 \begin{proof}(Sketch)
@@ -2326,14 +2404,15 @@ We call these two conditions as the Cartesian assumption.
 \end{proof}
 \endignore}
 
-\begin{corollary}\label{cor:duality}
+\begin{theorem}\label{thm:duality}
   Let $l\approx d$ be a dual assertion and $x=c$ be a primal assertion
   such that $\gamma(\{\sigma \mid \sigma(l)=d\}) \subseteq \{\sigma \mid \sigma(x)=c\}$.
-  If the dual is an abstraction of the primal (as in Theorem~\ref{thm:duality}),
+  If the dual is an abstraction of the primal (as in Definition~\ref{def:abs})
+  with respect to the concretization function $\gamma$,
   then, whenever
   $l \approx d$ holds in $P$ in the dual semantics, then
   $x = c$ holds in $P$ in the primal semantics.
-\end{corollary}
+\end{theorem}
 \ignore{
 \begin{proof}
   Let $\ds\in\semt(P)(U')$.
@@ -2359,13 +2438,22 @@ This is a ``weak'' form of duality because it goes only in one direction
 ($\exists\cdot\Rightarrow\forall\cdot$).
 Duality theorems in linear programming are of the strong form because
 they are ``if and only if'' statements. % relating the primal and the dual.
-Duality has an interesting use in program verification: it replaces a 
+If we use enumeration over all possible values to check a
+$\forall$ formula, we can find a violation of the $\forall$ verification constraint
+after some finite search and thus, we may find a bug.
+If we use enumeration over all possible values to check a
+$\exists$ formula, we can find a suitable valuation of the dual exists-variables 
+after some finite search, and thus we may find a proof.
+Hence, duality has an interesting use in program verification: it replaces a 
 ``search for bugs'' approach (violation of primal asserts)
 by a ``search for proofs'' approach (satisfiability of dual asserts).
+Note that template-based methods for verification, also called
+constraint-based verification, also have the same effect~\cite{Gulwani08:PLDI,Gulwani13:STTT}
+and are an instance of the weak duality principle.
 
 \begin{figure}[t]
   \begin{tabular}{c@{$\quad$}|@{$\quad$}c}
-    ~~~~~~~~~~~~~~~~~\begin{minipage}{40mm}
+    \begin{minipage}{40mm}
 \begin{center}
 \[
   \begin{array}{ll}
