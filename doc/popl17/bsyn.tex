@@ -670,8 +670,9 @@ solutions to privacy preserving computation~\cite{DBLP:conf/esorics/BogdanovLW08
 Our problem is as follows: find a protocol for Alice and Bob 
 to compute an additive share of the
 product of Alice's and Bob's private input values.
-Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}$,
-and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}$.
+Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}_q$,
+and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}_q$, for some 
+natural $q$, say $32$.
 For {\em correctness}, 
 our functional requirement is that
 $$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B).$$
@@ -733,7 +734,7 @@ We first identify the components that we could use in the protocol.
 These are the three arithmetic operations 
 $\mathtt{plus}$, 
 $\mathtt{minus}$, and $\mathtt{times}$, along with
-a few random number generators, say 
+a few calls to a  pseudo-random generator, say 
 $\genx$,
 $\geny$,
 $\genr$, and
@@ -832,10 +833,10 @@ is similar to the component-based synthesis problem~\cite{bitvector}.
 %
 %Once we have the library of ten components, and the structure of the protocol
 %above, we have what can be called a ``sketch'' of the protocol.  
-Now, we need
-to specify the requirements -- the functional correctness requirement
+%Now, we need
+%to specify the requirements -- the functional correctness requirement
 %$$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B),$$
-and the security requirement.
+%and the security requirement.
 
 Let us first focus on the correctness requirement. If we give each of the $10$
 components its natural interpretation (that is, all variables are 
@@ -843,16 +844,25 @@ integer valued, $\mathtt{plus}$ is arithmetic addition, and so on),
 then the correctness requirement is simply the arithmetic equality
 $$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B).$$
 Now, synthesis can be performed as in~\cite{bitvector} -- the synthesis problem
-is reduced to an $\exists\forall$ formula over the theory of arithmetic,
+is reduced to an $\exists\forall$ formula over a suitable theory,
 where $\exists$ quantifier searches over the space of possible programs,
 and the $\forall$ quantifier checks correctness over the space of all possible
-inputs.  However, this approach does not work here because
-of two issues: first, 
-we have not captured the security requirement, and second,
-we have to solve an $\exists\forall$ problem over 
-the (undecidable) theory of nonlinear integer arithmetic.
-Our new technique, bounded program synthesis, overcomes both these
-issues using one key idea: giving components a second, called {\em{dual}},
+inputs. Note that, intuitively, this corresponds to 
+generating candidate programs, and checking a {\em validity} property on
+each of them. If the validity check passes, then the candidate is actually a solution.
+Also, note that how to encode our security requirement in this formulation is not obvious.
+
+%However, this approach does not work here because
+%of two issues: first, 
+%we have not captured the security requirement, and second,
+%we have to solve an $\exists\forall$ problem over 
+%the (undecidable) theory of nonlinear integer arithmetic.
+Our new technique, bounded program synthesis, 
+allows us to (a) turn the validity check above into a satisfiability
+check over an alternative theory, resulting in a more efficient synthesis algorithm,
+and (b) provide a natural way of specifying a nonfunctional security 
+requirement. The key idea behind bounded program synthesis is
+giving components a second, called {\em{dual}},
 interpretation (as opposed to giving it the natural, or {\em{primal}}, interpretation).
 
 \newcommand{\ttrule}[4]{{{#1}}: & \begin{array}{c}{#2}\\ \hline {#3}\end{array} &  {{#4}}}
@@ -884,25 +894,46 @@ interpretation (as opposed to giving it the natural, or {\em{primal}}, interpret
   \label{fig:rules0}
 \end{figure*}
 
-Consider an abstract domain that consists of symbolic polynomial expressions
+As a first step in defining the dual semantics for this problem,
+consider an abstract domain that consists of symbolic polynomial expressions
 of degree at most $2$ over the six variables: the two inputs $a,b$ and the
 four random numbers $x,y,r,u$.
+$${\cal A} = \{p(a, b, x, y, r, u)~|~p\mbox{ is quadratic}\}$$
+where polynomials in ${\cal A}$ are represented as lists of reduced monomials.
+
 Let us say we wish our program (that is yet to be discovered)
 to have a proof in this abstract domain.  
 We can design proof rules that essentially perform
-symbolic execution to check an assertion 
-(see Figure~\ref{fig:rules0}).
+symbolic execution to check an assertion.
+To do so, we assign an abstract value $\theta(v)$
+to every line of the form $v:=op(\_)$
+of our target program, where 
+$op\in \mathtt{plus}, \mathtt{minus}, \mathtt{times}$
+$\genx$,
+$\geny$,
+$\genr$,
+$\gend$,
+using a set of proof rules (see Figure~\ref{fig:rules0}).
+
 We can use these proof rules to prove an assertion $v+w=a*b$ 
 at the end of program $P$ as follows:
 start with an identity substitution ($\mathtt{id}$), and update
-it by symbolically executing the code. For example, after execution
+it by symbolically executing the code. For example, 
+in rule {\genx}, after execution
 of $v := \genx$, we get a new substitution that maps $v$ to the symbolic
-polynomial $x$.  Once we have the substitution $\theta$ resulting
+polynomial $x$. Similarly, 
+rule {\plus},  handles program lines of the form 
+$v := \plus(x, y)$ setting $\theta(v)$ to the polynomial $(\theta(x) + \theta(y))\in {\cal A}$.
+Once we have the substitution $\theta$ resulting
 after symbolically executing the whole program, we can check if 
-$\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ are identical expressions.
+$\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ 
+are identical expressions, i.e. correspond to the same element of the abstract domain ${\cal A}$.
 The proof rule for $\timess$ in Figure~\ref{fig:rules0} has a condition
 that allows multiplication to be used only on linear polynomials (so that
 the result is atmost quadratic).
+Note that, what we have done using this proof system to
+check correctness is to turn our validity property over 
+integers into an evaluation over ${\cal A}$.
 
 Rather than searching for the correct program, let us say we want to
 search for the proof in the proof system shown in Figure~\ref{fig:rules0}.  
@@ -916,9 +947,10 @@ Let $L = \{x,y,r,u,a,b\}$ and $NL = \{ij \mid i\neq j, i\in L, j\in L\}\cup \{ii
 If $v$ is a program variable, then it is associated with
 $27$ dual  variables, namely, $v_i$, where index $i$ ranges over the set
 $I = L\cup NL$ of all indices. If variable $v$ gets a symbolic value
-$p$ and $p$ is quadratic, then
+$p$, denoted  and $p$ is quadratic, then
 the dual variables $v_i$'s get the value of the coefficient of the
-monomial $i$ in $p$.
+monomial $i$ in $p$, which given the rules in Figure~\ref{fig:rules0},
+will be a value in $\{-1, 0, 1\}$  
 Now, let us say we could prove our functional requirement using quadratic
 symbolic values.  Then, there exists a value of the dual variables that
 witnesses this proof.  The converse is even more important: if
@@ -4046,7 +4078,7 @@ the secure multiplication sketch.}
 
 Similar to the example in Sec.~\ref{sec:ex}, 
 Alice and Bob wish to carry out secure multiplication of 
-their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}$),
+their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}_q$),
 with the help of Carol who distributes random values to both the parties.
 The only difference now is that the functional requirement now specifies
 that the sum of the shares computed by Alice, Bob 
