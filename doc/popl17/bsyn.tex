@@ -3955,25 +3955,37 @@ the cryptographic functions used in the padding scheme and
 \subsection{Secure multiplication}
 In Section~\label{sec:ex}, we presented an application
 of our synthesis methodology to synthesize a secure 2-party
-computation protocol that relies on a third semi-trusted
-party. As explained above, our takes as input a sketch of the 
-solution, i.e. a description of a family of protocols 
+computation multiplication protocol that relies on a third semi-trusted
+party. As explained above, our synthesis tool takes as input a sketch of the 
+solution, i.e. a description of a finite family of protocols 
 ${\cal F}$ in this case, and searches for a protocol $P\in{\cal F}$
 that satisfies the requirements. 
 
-In this section, we report on running times
-for the synthesis of such algorithm, depending on the 
+With the goal of investigating the 
+relation between the size of ${\cal F}$
+and the running time of our approach, 
+Figure~\ref{fig:plot-sec-mult} reports 
+running times and approximated
+search space size, i.e. $|{\cal F}|$,
+for $30$ variants of our sketch presented in 
+Section~\label{sec:ex}.
 
+The first $15$ variants of our sketch are satisfiable 
+(blue trace in the plot),
+and were obtained in the following way:
+we started from a sketch whose only solution 
+is the solution reported in~Section~\label{sec:ex},
+and hence such that $|{\cal F}| = 1$,
+Then, we increasingly relaxed the sketch,
+until we obtained a general one.
 
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
-\label{fig:plot-sec-mult}
-\caption{From left to right, the data points correspond to running time and approximate search
-space size of the following sketches: 
-(1) correct protocol, 
-(2) first line of $A$'s program,
-(3) messages from $C$,
+Hence, the leftmost data point of the satisfiable instances corresponds to 
+simply a verification check.
+The second one corresponds to a sketch 
+where everything is fixed but
+the first line of $A$'s program.
+In subsequent data points (3)-(15), the part of the protocol to be determined
+is (3) messages from $C$,
 (4) messages from $C$ and $B$,
 (5) arithmetic operations in $A$ and $B$,
 (6) arithmetic operations in $C$, and messages from $C$ and $B$,
@@ -3983,14 +3995,41 @@ space size of the following sketches:
 (10) arithmetic operations and messages from $C$ and $B$,
 (11) arithmetic operations in $A$ and $B$, and program for $C$,
 (12) arithmetic operations in $A$, and programs for $C$ and $B$,
-(13) All but first line of $A$'s program, and programs for $C$ and $B$,
-(14) Programs for $A$, $B$, and $C$,
-(15) Programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
-The unsat instances are obtaines from (1)-(15) by adding the additional
+(13) everything but first line of $A$'s program, and programs for $C$ and $B$,
+(14) programs for $A$, $B$, and $C$,
+(15) programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
+
+The unsatisfiable instances are obtaines from (1)-(15) by adding the additional
 restriction that $C$ cannot use multiplication. This prevents this
-party from generated appropriately correlated random data,
-which results in unsatisfiable sketches.
-}
+party from generating appropriately correlated random data,
+which results in unsatisfiable sketches
+
+The experiments were run using Yices as backend solver
+on a 2.30GHz machine with 8Gb of memory.
+
+Although it is difficult to make definitive statements 
+about the behaviour of SMT solvers, the plot in
+Figure~\ref{fig:plot-sec-mult}
+confirms a tendency that we have often observed:
+unsatisfiable instances 
+either are easy to solve or
+take longer to solve than unsatisfiable instances.
+%An intuitive explanation for that fenomenon 
+%is the fact that, while Yices 
+%is good at guiding the search, 
+%it struggles when all the search space has to be explored. 
+All teh sketches used in this section, as well as the 
+corresponding SMT instances are available at
+~\texttt{ommited for double-blindness}.
+
+
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
+\label{fig:plot-sec-mult}
+\caption{Running times for satisfiable and unsatisfiable variants of 
+the secure multiplication sketch.}
 \end{figure}
 
 \subsection{Dining Cryptographers}
