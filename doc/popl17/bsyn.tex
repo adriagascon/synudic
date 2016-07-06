@@ -746,27 +746,78 @@ its argument. Thus, we have $10$ components in total, as we also
 show at the top in Figure~\ref{fig:ex0}.
 
 Next, let us fix a communication schedule between the parties.
-Let us say the structure of the protocol is as follows:\\
-(1) $C$ computes some values first ($5$ lines), \\
-(2) $C$ sends a pair of values to $A$ and a pair to $B$,\\
-(3) $A$ computes some value ($1$ line) and sends it to $B$,\\
+This will define the family of protocols we are interested 
+in, as shown in Figure~\ref{fig:example-topology}.
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+  %\useasboundingbox (-1,-1) rectangle (11,11); 
+  \tikzset{DataStyle/.style = {draw=black, thick, shape=circle, inner sep=2pt, text=black}}
+  \tikzset{OpStyle/.style = {draw=black, thick, shape=rectangle, inner sep=3pt, text=black}}
+  \tikzset{EdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+  \tikzset{PortEdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+
+
+  \node(1)[DataStyle]{$C$};
+  \node(2)[DataStyle, below left=of 1]{$A$};
+  \node(3)[DataStyle, below right=of 1]{$B$};
+  \node(4)[left=of 2, xshift=10pt]{{\small $\mathtt{input}(A)$}};
+  \node(5)[right=of 3, xshift=-10pt]{{\small$\mathtt{input}(B)$}};
+  \node(6)[below=of 2]{{\small $\mathtt{output}(A)$}};
+  \node(7)[below=of 3]{{\small $\mathtt{output}(B)$}};
+  
+     \draw[EdgeStyle](1) to node[above left]{$(v_1, v_2)$} (2);
+     \draw[EdgeStyle](1) to node[above right]{$(v_3, v_4)$} (3);
+     \draw[EdgeStyle, bend left](2) to node[below]{$v_5$} (3);
+     \draw[EdgeStyle, bend left](3) to node[below]{$(v_6, v_7)$} (2);
+      \draw[EdgeStyle](4) to node{} (2);
+      \draw[EdgeStyle](5) to node{} (3);
+      \draw[EdgeStyle](2) to node{} (6);
+      \draw[EdgeStyle](3) to node{} (7);
+
+
+
+ \end{tikzpicture}
+\label{fig:example-topology}
+\caption{High-level synthesis sketch for secure multiplication}
+\end{figure}
+
+The structure of the protocol is as follows:\\
+(1) $C$ computes some values $(v_1, \ldots, v_4)$ first ($5$ lines), \\
+(2) $C$ sends $(v_1, v_2)$ to $A$ and  $(v_3, v_4)$ to $B$,\\
+(3) $A$ computes $v_5$ ($1$ line) and sends it to $B$,\\
 (4) $B$ computes some values ($3$ lines), 
-sends a pair to $A$ and picks one value as its output, \\
+sends a pair ($v_6$, $v_7$) to $A$ and picks one value as its output, \\
 (5) $A$ computes its output ($2$ lines).\\
 It is reasonable to assume that the user has a sketch such as above,
 and we assume as such in this paper.
 Nevertheless, even if such a structure is not available, one could either
 pick a general-enough structure, or
 iterate over such structures, to discover the desired protocol.
-Here, when we say party $A$ computes some values, then
-it means that party $A$ performs a 
+Hence, intuitively, our synthesis problem consists on
+finding programs
+$P_C, P_{A,1}, P_{B,1}, P_{A,1}, P_{B,1}$ such that
+$(v_1, \ldots, v_4) = P_c()$,
+$v_5 = P_{A,1}(v_1, v_2, \mathtt{input}(A))$,
+$(v_6, v_7) = P_{B,1}(v_3, v_4, \mathtt{input}(B))$,
+$\mathtt{output}(A) = P_{A,2}(v_1, v_2, v_6, v_7, \mathtt{input}(A))$,
+$\mathtt{output}(B) = P_{B,2}(v_1, v_2, v_5, \mathtt{input}(B))$,
+and $\mathtt{output}(B)$ and $\mathtt{output}(A)$
+satisfy our correcteness requirement and the overall
+protocol satisfies our security requirement.
+
+Here, when we say party $A$ computes some values
+with program $P_{A,1}$, we mean that party $A$ performs a 
 sequential composition of the components available to it; that is,
-$A$ uses a straight-line program.
+$P_{A,1}$ is a straight-line program.
 The set of components available to a party can vary, and this knowledge
 is part of the input to the synthesis tool.  
 We also assume we are given an upper
 bound on the length of the straight-line programs
 used by each party (shown in brackets above).   
+
+
 The complete sketch is shown in Figure~\ref{fig:ex0}.
 So far, the problem formulation
 is similar to the component-based synthesis problem~\cite{bitvector}.
@@ -3733,6 +3784,10 @@ enables our synthesis approach based on dual interpretations.
 A remarkable distinction of our approach, as opposed to the
 enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 is that we encode all the synthesis problem in a single logical constraint.
+Also, we should remark that our formulation of the problem 
+is analogous to the one in~\cite{DBLP:conf/csfw/MalozemoffKG14},
+in the sense that our sketches do not provide 
+additional ``hints'' to the synthesis tool.
 
 %They are able to filter for correctness by checking if there is an
 %appropriate path from the output nodes to the input nodes. 
@@ -3898,6 +3953,17 @@ the cryptographic functions used in the padding scheme and
 %% dual semantics that captured ``decryptability'' constraints directly.
 
 \subsection{Secure multiplication}
+In Section~\label{sec:ex}, we presented an application
+of our synthesis methodology to synthesize a secure 2-party
+computation protocol that relies on a third semi-trusted
+party. As explained above, our takes as input a sketch of the 
+solution, i.e. a description of a family of protocols 
+${\cal F}$ in this case, and searches for a protocol $P\in{\cal F}$
+that satisfies the requirements. 
+
+In this section, we report on running times
+for the synthesis of such algorithm, depending on the 
+
 
 \begin{figure}
 \centering
