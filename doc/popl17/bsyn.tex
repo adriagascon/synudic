@@ -47,6 +47,7 @@
 %\def\Vt{{\tt{VarsB}}}
 \def\domp{{\tt{Domp}}}
 \def\domd{{\tt{Domd}}}
+\def\doma{{\tt{Doma}}}
 \def\paths{{\tt{Paths}}}
 %\def\pps{{\tt{PPS}}}
 %\def\Stmt{{\tt{Stmt}}}
@@ -2469,7 +2470,46 @@ Note that template-based methods for verification, also called
 constraint-based verification, also have the same effect~\cite{Gulwani08:PLDI,Gulwani13:STTT}
 and are an instance of the weak duality principle.
 
-\subsection{Finding Abstract Duals}\label{sec:findingduals}
+\subsection{Constructing Abstract Duals}\label{sec:findingduals}
+
+We describe a generic approach for constructing a dual interpretation
+that will be an abstraction of the primal. 
+Let us assume we have some general technique (such as, predicate
+abstraction or abstract interpretation) for abstracting a program.
+Let $\doma$ be the set of all abstract states.
+Let us say we have proof rules that generate valid Hoare triples
+$\{\phi_1\}P\{\phi_2\}$ over the abstract states, where $P$ is a program,
+$\phi_1,\phi_2$ are elements of $\doma$.
+Now, to define a dual interpretation, we first parameterize the elements
+of $\doma$. Say, we have a template $\Phi(\vec{u})$ that contains parameters
+$\vec{u}$ such that 
+$$\doma = \{\Phi(\vec{u}) \mid \vec{u}\in\domd\}$$
+In other words, we can generate all abstract elements
+by instantiating the parameters $\vec{u}$ from the set $\domd$.
+The set $\domd$ forms our dual domain, and 
+$\vec{u}_{l1},\vec{u}_{l2},\ldots$ form the dual variables, where
+$l1,l2,\ldots$ are all the program locations (nodes in the program graph).
+Finally, we need to define the dual meaning of each program statement.
+For a given program statement/fragment $P$, we consider the proof rules
+that generate valid Hoare triples $\{\phi_1\}P\{\phi_2\}$, and generate
+a constraint $\psi_P(\vec{u},\vec{v})$ such that the following holds:
+$$
+ \forall \vec{u},\vec{v}:
+ \psi_P(\vec{u},\vec{v} \;\Rightarrow\;
+   \{\phi_1\}P\{\phi_2\}
+$$
+If we can find such $\psi_P$ (that are not equivalent to $\mathit{false}$),
+then these constraints will define the dual meaning of $P$.
+
+We would like to emphasize two points here. 
+First,
+the task of constructing a dual interpreation that
+is an abstraction of the primal will not succeed always (otherwise,
+for example, we would have NP=co-NP). 
+Second, while abstract duals are a powerful concept, dual interpretations
+that are {\em{not}} abstractions of the primal also prove to be
+immensely useful, especially in the application to synthesis, where they
+can be used to capture nonfunctional properties.
 
 \begin{figure}[t]
   \begin{tabular}{c@{$\quad$}|@{$\quad$}c}
