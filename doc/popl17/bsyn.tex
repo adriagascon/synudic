@@ -131,7 +131,7 @@
 %\preprintfooter{}   % 'preprint' option specified.
 
 %\title{Bounded Program Synthesis}
-\title{Search for Proof, not Program: Duality for Bounded Synthesis}
+\title{Search for Proof to search for Programs: Duality for Bounded Program Synthesis}
 
 \numberofauthors{1}
 \author{
@@ -139,7 +139,6 @@
 Firstname Lastname\\
 \affaddr{Affiliation1}\\
 \affaddr{Affiliation2}\\
-\affaddr{Affiliation3}\\
 \email{email@address}
 }
 %\author{Adri{\`a} Gasc{\'o}n} \and Ashish Tiwari \and Brent Carmer \and Umang Mathur}
@@ -155,10 +154,13 @@ is based on searching for the proof of correctness
 of the target program, rather than searching for the 
 correct program directly.
 Our technique, which we call bounded synthesis,
-takes as input a proof system that checks the correctness
+relies on a proof system that checks the correctness
 property of the target program, and searches for
-a proof in that proof system. The program can then be
-read off from the discovered proof.
+a proof in that proof system. Our approach is based
+on a notion of duality that reduces safety verification
+to constraint solving. 
+% The program can then be
+% read off from the discovered proof.
 
 A significant benefit of the approach is that it can
 uniformly handle both functional and non-functional
@@ -384,33 +386,33 @@ and helps provide theoretical clarity in that space.
 \endignore}
 
 Our contributions are as follows:
-\begin{itemize}
-  \item We  introduce bounded program synthesis, where
+\begin{itemize}\itemsep=0em
+    \item We  introduce {\em{bounded program synthesis}}, where
     a bounded search for proof in a given proof system 
     is used as an approach to synthesize correct programs.
-  \item We note that bounded proof search can be used to
-    augment an (exits-forall) synthesis constraint, or 
-    it can be used to entirely replace it by a an
-    exists-exists constraint.  We observe that performing
-    synthesis by solving an exists-exists formula is 
-    based on a (weak) duality principle -- a forall check
-    (program is correct for all inputs) is conservatively 
-    replaced 
-    by an exists check (there exists a proof).
-  \item We show that abstract interpretation provides one
+  \item We show that bounded proof search can be used to
+    either augment an (exists-forall) synthesis constraint, or 
+    entirely replace it by an exists-exists constraint.  
+    We identify a {\em{weak duality}} principle, which
+    enables replacement of a forall check
+    (program is correct for all inputs)
+    by an exists check (there exists a proof),
+    and thus allows us to perform
+    synthesis by solving an exists-exists constraint.
+  \item We show that standard abstraction techniques provide one
     way of generating proof systems on which bounded proof
-    search can be performed.  The idea is to paramterize
+    search can be performed. Bounded proof search is performed by 
+    paramterizing
     the elements of the abstract domain (as in template-based
-    program verification). Finding a proof in the abstract
-    domain boils down to finding values for these parameters,
-    which can be stated as an existential constraint (exists
-    values for the parameters).
-  \item We note that dual checks are also useful for capturing
-    nonfunctional properties, such as security..
-  \item
-We also claim that our application of synthesis technology
-to security as an important contribution.
-Cite 4 papers.
+    program verification), and then 
+    finding values for these parameters that correspond to valid
+    application of the proof rules (exists constraint).
+  \item We demonstrate that the security is an ideal
+    domain for application of automated program synthesis technology,
+    thus, solidifying preliminary evidence in this 
+    regard~\cite{zoocrypt,DBLP:conf/csfw/MalozemoffKG14,TGD15:CADE,KatzBestPaper,BrentNew}.
+    The bounded proof search using dual interpretations introduced here 
+    eases the task of specifying security requirements.
 \end{itemize}
 
 We start by introducing a programming formalism that admits
