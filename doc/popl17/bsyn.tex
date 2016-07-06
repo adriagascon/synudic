@@ -4032,6 +4032,38 @@ corresponding SMT instances are available at
 the secure multiplication sketch.}
 \end{figure}
 
+
+\subsection{Du-Atallah Secure Multiplication}
+
+Similar to the example in Sec.~\ref{sec:ex}, 
+Alice and Bob wish to carry out secure multiplication of 
+their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}$),
+with the help of Carol who distributes random values to both the parties.
+The only difference now is that the functional requirement now specifies
+that the sum of the shares computed by Alice, Bob 
+and Carol equals the product of the initial values 
+that Alice and Bob had access to.
+That is, if \texttt{output(A)}, \texttt{output(B)} and \texttt{output(C)}
+respectively represent the shares computed by Alice, Bob and Carol, then
+$$
+\mathtt{output(A)} + \mathtt{output(B)} + \mathtt{output(C)} = \mathtt{input(A)}*\mathtt{input(B)}.
+$$
+As before, none of the public announcements should reveal anything
+about individual shares.
+
+By slightly modifying the sketch from the illustrative example 
+(Sec.~\ref{sec:ex}) we discovered the following 
+protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
+
+\begin{enumerate}
+    \item Carol generates two random numbers : $x$ which it forwards to Alice
+        and $y$ which it forwards to Bob.
+    \item Alice computes $\mathtt{input(A)} + x$ and sends to Bob,
+        and Bob computes $\mathtt{input(B)} + y$ and sends to Alice.
+    \item Alice, Bob and Carol announce $-x\times(y+b)$, $b\times(x+a)$ and 
+        $x\times y$ as their shares.
+\end{enumerate}
+
 \subsection{Dining Cryptographers}
 
 Anonimity protocols such as the Dining Cryptographers protocol,
@@ -4075,38 +4107,6 @@ can be expressed in another dual domain where the domain values
 maintain the different sources of randomness, 
 and interact differently with different logical operations.
 
-\subsection{Du-Atallah Secure Multiplication}
-
-Similar to the example in Sec.~\ref{sec:ex}, 
-Alice and Bob wish to carry out secure multiplication of 
-their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}$),
-with the help of Carol who distributes random values to both the parties.
-The only difference now is that Carol can perform some computation
-on the set of values it has access to. 
-Also, the functional requirement now specifies
-that the sum of the shares computed by Alice, Bob 
-and Carol equals the product of the initial values 
-that Alice and Bob had access to.
-That is, if \texttt{output(A)}, \texttt{output(B)} and \texttt{output(C)}
-respectively represent the shares computed by Alice, Bob and Carol, then
-$$
-\mathtt{output(A)} + \mathtt{output(B)} + \mathtt{output(C)} = \mathtt{input(A)}*\mathtt{input(B)}.
-$$
-As before, none of the public announcements should reveal anything
-about individual shares.
-
-By slightly modifying the sketch from the illustrative example 
-(Sec.~\ref{sec:ex}) we discovered the following 
-protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
-
-\begin{enumerate}
-    \item Carol generates two random numbers : $x$ which it forwards to Alice
-        and $y$ which it forwards to Bob.
-    \item Alice computes $\mathtt{input(A)} + x$ and sends to Bob,
-        and Bob computes $\mathtt{input(B)} + y$ and sends to Alice.
-    \item Alice, Bob and Carol announce $-x\times(y+b)$, $b\times(x+a)$ and 
-        $x\times y$ as their shares.
-\end{enumerate}
 
 \subsection{Oblivious Transfer}
 
@@ -4126,6 +4126,7 @@ given a cyclic group with generator $g$, the DDH assumption states that
 $(g^a,g^b,g^{ab})$ is computationally indistinguishable from
 $(g^a,g^b,g^c)$ for randomly and independently chosen elements $a,b,c$ from $\mathbb{Z}$.
 
+% Shortening this section
 % We first collect the set of primitives that we can use to synthesize an OT protocol.
 % In essence,
 % (1) each party can pick some random numbers from $\mathbb{Z}$;
@@ -4140,29 +4141,33 @@ $(g^a,g^b,g^c)$ for randomly and independently chosen elements $a,b,c$ from $\ma
 We provide a sketch to the synthesis tool that consists of four blocks of straight-line code.
 It is assumed that the \sender\ has access to random and independently chosen elements 
 $r,s$ from $\mathbb{Z}$, and the \chooser\ has access random and independently chosen
-elements $a,b,c\in\mathbb{Z}$.  The program sketch says the following:
-\\
-(1) In Block 1, the \sender\ can do nothing, or send $y=g^r$ to the \chooser.
-\\
-(2) In Block 2, the \chooser\ can compute $v=g^x$ for $x\in\{a,b,c\}$, or compute
-a pair $(y*v,v)$ or a pair $(v*v',v'')$ or reverse a pre-computed pair, 
-where $y$ is the value received from the \sender; furthermore,
-the \chooser\ can send these values to the \sender.
-When the \chooser\ sends a pair $(v_1,v_2)$ of values to the \sender, 
-the implicit understanding is that
-the left value $v_1$ is the value actually sent when the \chooser\ picks $m_0$ and 
-the right value $v_2$ is the value actually sent when the \chooser\ picks $m_1$.
-\\
-(3) In Block 3, the \sender\ can compute new values using operators
-$x^y$, $x*y$ or $x/y$ if she has access to $x$ and $y$;
-she then picks 3 values from the 
-computed set -- a key $k_0$ to
-encrypt $m_0$, a second key $k_1$ to encrypt $m_1$, and a third value as a helper value
-to be send to the \chooser.
-\\
-(4) In Block 4, the \chooser\ uses exponentiation on known values to extract key $k_0$ or $k_1$.
+elements $a,b,c\in\mathbb{Z}$.
 
-We are again able to perform synthesis by completely eliminating the primal components
+%The program sketch says the following:
+% Adria: Shortening this section
+%% \\
+%% (1) In Block 1, the \sender\ can do nothing, or send $y=g^r$ to the \chooser.
+%% \\
+%% (2) In Block 2, the \chooser\ can compute $v=g^x$ for $x\in\{a,b,c\}$, or compute
+%% a pair $(y*v,v)$ or a pair $(v*v',v'')$ or reverse a pre-computed pair, 
+%% where $y$ is the value received from the \sender; furthermore,
+%% the \chooser\ can send these values to the \sender.
+%% When the \chooser\ sends a pair $(v_1,v_2)$ of values to the \sender, 
+%% the implicit understanding is that
+%% the left value $v_1$ is the value actually sent when the \chooser\ picks $m_0$ and 
+%% the right value $v_2$ is the value actually sent when the \chooser\ picks $m_1$.
+%% \\
+%% (3) In Block 3, the \sender\ can compute new values using operators
+%% $x^y$, $x*y$ or $x/y$ if she has access to $x$ and $y$;
+%% she then picks 3 values from the 
+%% computed set -- a key $k_0$ to
+%% encrypt $m_0$, a second key $k_1$ to encrypt $m_1$, and a third value as a helper value
+%% to be send to the \chooser.
+%% \\
+%% (4) In Block 4, the \chooser\ uses exponentiation on known values to extract key $k_0$ or $k_1$.
+
+We are again able to perform synthesis 
+by completely eliminating the primal components
 and using only suitably designed % The key novelty in our synthesis approach  is that
 {\em{dual programs}}.
 Thus, we solve the OT synthesis problem by generating 
@@ -4170,9 +4175,10 @@ an $\Phi_{\exists\exists}$ formula, which is then solved using an
 off-the-shelf SMT solver~\cite{yices,z3}.
 %
 The domain $\domd$ of our dual interpretation is just a fixed length
-vector of real numbers. For simplicity, say these are length $1$ vectors.
-For random values $r,s,a,b,c\in\mathbb{Z}$, we use fixed prime numbers;
-say $r=83,s=11,a=29,b=71,c=23$. 
+vector of real numbers. 
+%For simplicity, say these are length $1$ vectors.
+%For random values $r,s,a,b,c\in\mathbb{Z}$, we use fixed prime numbers;
+%say $r=83,s=11,a=29,b=71,c=23$. 
 When there is a computation of $g^x$, the program {\em{does not}} perform any computation,
 but rather just stores $g^x$ as $x$ -- for each value, the program is cognizant of
 which party has access to $x$ and which party has access to only $g^x$.
@@ -4180,107 +4186,98 @@ All arithmetic operations on group elements are mapped to arithmetic operations
 on the exponents in the obvious way: for example, $(g^x)^y$ is simply $g^{xy}$,
 and $g^xg^y$ is simply $g^{x+y}$. 
 
-We capture the requirements of the OT protocol as follows:
-(a) we ensure that the \chooser\ can extract message $m_0$, when it has picked $m_0$,
-by checking that the (dual) value computed on Block 4 is equal to the key $k_0$
-computed in Block 3;
-(b) we check that the \chooser\ {\em{can not}} extract message $m_1$, when it has picked $m_0$,
-by checking that the key $k_1$ computed in Block 3 is not in the set of values that the
-\chooser\ can compute using some fixed-size expressions (that are explicitly enumerated);
-(c) we check that the \sender\ {\em{can not}} learn the choice made by the \chooser\ by
-checking that the \sender\ is unable to generate the values sent by the \chooser.
-We note that the checks in (b) and~(c) are necessarily incomplete. Nevertheless, they are
-very effective in pruning out obviously insecure protocols.
+%We capture the requirements of the OT protocol as follows:
+%(a) we ensure that the \chooser\ can extract message $m_0$, when it has picked $m_0$,
+%by checking that the (dual) value computed on Block 4 is equal to the key $k_0$
+%computed in Block 3;
+%(b) we check that the \chooser\ {\em{can not}} extract message $m_1$, when it has picked $m_0$,
+%by checking that the key $k_1$ computed in Block 3 is not in the set of values that the
+%\chooser\ can compute using some fixed-size expressions (that are explicitly enumerated);
+%(c) we check that the \sender\ {\em{can not}} learn the choice made by the \chooser\ by
+%checking that the \sender\ is unable to generate the values sent by the \chooser.
+%We note that the checks in (b) and~(c) are necessarily incomplete. Nevertheless, they are
+%very effective in pruning out obviously insecure protocols.
 
 Using the above approach, we synthesized two different OT protocols:
 the first protocol we synthesized was also recently reported in~\cite{SimpleOT},
 and the second protocol we synthesized is the Naor-Pinkas oblivious transfer protocol~\cite{Pinkas}.
+The solutions were obtained in $\tilde 1$ and $\tilde 100$ seconds in a regular laptop, 
+using Yices as a backend solver.
 
-\begin{remark}
+%\begin{remark}
 Because of the approximations involved in capturing the security
-property in some cases, in our applications of synthesis to security, 
-there is often a need for {\em{a posteriori}} verification of security 
+property, in this case
+%in some cases, in our applications of synthesis to security, 
+there is 
+%often 
+a need for {\em{a posteriori}} verification of security 
 of the synthesized scheme using other dedicated verification tools; 
 such as, Easycrypt~\cite{easycrypt}. 
 However, the program synthesis tool is a fast and effective tool to 
 quickly generate plausible schemes.
-\end{remark}
+%\end{remark}
 
-\input{table}
-
-\subsection{Experimental Results}
-
-\begin{figure}
-\centering
-\begin{tikzpicture}
-  %\useasboundingbox (-1,-1) rectangle (11,11); 
-  \tikzset{DataStyle/.style = {draw=black, thick, shape=circle, inner sep=2pt, text=black}}
-  \tikzset{OpStyle/.style = {draw=black, thick, shape=rectangle, inner sep=3pt, text=black}}
-  \tikzset{EdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
-  \tikzset{PortEdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+% Adria The data in this section is now distributed in previus sections 
+%% \input{table}
 
 
-  \node(1)[DataStyle]{$C$};
-  \node(2)[DataStyle, below left=of 1]{$A$};
-  \node(3)[DataStyle, below right=of 1]{$B$};
-  \node(4)[left=of 2, xshift=10pt]{{\small $\mathtt{input}(A)$}};
-  \node(5)[right=of 3, xshift=-10pt]{{\small$\mathtt{input}(B)$}};
-  \node(6)[below=of 2]{{\small $\mathtt{output}(A)$}};
-  \node(7)[below=of 3]{{\small $\mathtt{output}(B)$}};
+%% \subsection{Experimental Results}
+
+%% \begin{figure}
+%% \centering
+%% \begin{tikzpicture}
+%%   %\useasboundingbox (-1,-1) rectangle (11,11); 
+%%   \tikzset{DataStyle/.style = {draw=black, thick, shape=circle, inner sep=2pt, text=black}}
+%%   \tikzset{OpStyle/.style = {draw=black, thick, shape=rectangle, inner sep=3pt, text=black}}
+%%   \tikzset{EdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+%%   \tikzset{PortEdgeStyle/.style   = {thick, ->, >=stealth, shorten <=0pt, shorten >=0pt}}
+
+
+%%   \node(1)[DataStyle]{$C$};
+%%   \node(2)[DataStyle, below left=of 1]{$A$};
+%%   \node(3)[DataStyle, below right=of 1]{$B$};
+%%   \node(4)[left=of 2, xshift=10pt]{{\small $\mathtt{input}(A)$}};
+%%   \node(5)[right=of 3, xshift=-10pt]{{\small$\mathtt{input}(B)$}};
+%%   \node(6)[below=of 2]{{\small $\mathtt{output}(A)$}};
+%%   \node(7)[below=of 3]{{\small $\mathtt{output}(B)$}};
   
-     \draw[EdgeStyle](1) to node[above left]{$(v_1, v_2)$} (2);
-     \draw[EdgeStyle](1) to node[above right]{$(v_3, v_4)$} (3);
-     \draw[EdgeStyle, bend left](2) to node[below]{$(v_5, v_6)$} (3);
-     \draw[EdgeStyle, bend left](3) to node[below]{$(v_7, v_8)$} (2);
-      \draw[EdgeStyle](4) to node{} (2);
-      \draw[EdgeStyle](5) to node{} (3);
-      \draw[EdgeStyle](2) to node{} (6);
-      \draw[EdgeStyle](3) to node{} (7);
+%%      \draw[EdgeStyle](1) to node[above left]{$(v_1, v_2)$} (2);
+%%      \draw[EdgeStyle](1) to node[above right]{$(v_3, v_4)$} (3);
+%%      \draw[EdgeStyle, bend left](2) to node[below]{$(v_5, v_6)$} (3);
+%%      \draw[EdgeStyle, bend left](3) to node[below]{$(v_7, v_8)$} (2);
+%%       \draw[EdgeStyle](4) to node{} (2);
+%%       \draw[EdgeStyle](5) to node{} (3);
+%%       \draw[EdgeStyle](2) to node{} (6);
+%%       \draw[EdgeStyle](3) to node{} (7);
 
 
 
- \end{tikzpicture}
-\label{fig:example-topology}
-\caption{The synthesis problem is to find programs 
-$P_C, P_{A,1}, P_{B,1}, P_{A,1}, P_{B,1}$ such that
-$(v_1, \ldots, v_4) = P_c()$,
-$(v_5, v_6) = P_{A,1}(v_1, v_2, \mathtt{input}(A))$,
-$(v_7, v_8) = P_{B,1}(v_3, v_4, \mathtt{input}(B))$,
-$\mathtt{output}(A) = P_{A,2}(v_1, v_2, v_7, v_8, \mathtt{input}(A))$,
-$\mathtt{output}(B) = P_{B,2}(v_1, v_2, v_5, v_6, \mathtt{input}(B))$,
-and $\mathtt{output}(B)$ and $\mathtt{output}(A)$
-satisfy our correcteness requirement and the overall
-protocol satisfies our security requirement.
-}
-\end{figure}
 
+%% Table~\ref{table} presents some statistics on our effort to synthesize 
+%% several different protocols for the above three problems. 
+%% For oblivious tranfer (OT), the approach based on using both primal and dual
+%% semantics (the $\Psi_{\exists\forall}$ approach) failed, but we were 
+%% successful in synthesizing OT protocols by replacing the primal by a dual and
+%% using the $\Phi_{\exists\exists}$ approach. 
+%% For padding schemes, we could use both approaches, but since the synthesis process
+%% is fast, the difference is not significant.
+%% For block cipher modes, we could again use both approaches, but when we replaced
+%% primal checks by new dual interpretations, synthesis times improved by an order
+%% of magnitude.  
+%% The results provide evidence that duality is useful: first, without dual
+%% semantics, we could not even specify the security requirements; and second,
+%% by replacing a primal by a dual, we improved running times by enabling the
+%% use of much faster SMT solvers, rather than
+%% the slower $\exists\forall$ solvers, at the backend.
 
-
-Table~\ref{table} presents some statistics on our effort to synthesize 
-several different protocols for the above three problems. 
-For oblivious tranfer (OT), the approach based on using both primal and dual
-semantics (the $\Psi_{\exists\forall}$ approach) failed, but we were 
-successful in synthesizing OT protocols by replacing the primal by a dual and
-using the $\Phi_{\exists\exists}$ approach. 
-For padding schemes, we could use both approaches, but since the synthesis process
-is fast, the difference is not significant.
-For block cipher modes, we could again use both approaches, but when we replaced
-primal checks by new dual interpretations, synthesis times improved by an order
-of magnitude.  
-The results provide evidence that duality is useful: first, without dual
-semantics, we could not even specify the security requirements; and second,
-by replacing a primal by a dual, we improved running times by enabling the
-use of much faster SMT solvers, rather than
-the slower $\exists\forall$ solvers, at the backend.
-
-The {\tt{Time}} column in Table~\ref{table} only shows an
-``order of magnitude'' number because synthesis timings are very sensitive and
-variable due to a lot of factors: (i) SMT solvers can get lucky in finding {\em{one}}
-satisfying solution in some cases, and in other cases, they can be extremely unlucky,
-and this variance can be observed even when the same problem is
-posed only slightly differently, and (ii) minor changes in the details of the sketch,
-for example, which functions can be used on which program blocks, can have a huge
-impact on running times.
+%% The {\tt{Time}} column in Table~\ref{table} only shows an
+%% ``order of magnitude'' number because synthesis timings are very sensitive and
+%% variable due to a lot of factors: (i) SMT solvers can get lucky in finding {\em{one}}
+%% satisfying solution in some cases, and in other cases, they can be extremely unlucky,
+%% and this variance can be observed even when the same problem is
+%% posed only slightly differently, and (ii) minor changes in the details of the sketch,
+%% for example, which functions can be used on which program blocks, can have a huge
+%% impact on running times.
 
 
 \section{Related Work}
