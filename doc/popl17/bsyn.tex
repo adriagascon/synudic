@@ -131,7 +131,7 @@
 %\preprintfooter{}   % 'preprint' option specified.
 
 %\title{Bounded Program Synthesis}
-\title{Search for Proof to search for Programs: Duality for Bounded Program Synthesis}
+\title{Search for Proof to Search for Programs: Duality for Bounded Program Synthesis}
 
 \numberofauthors{1}
 \author{
@@ -662,9 +662,9 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
 Secure Multi-party Computation (MPC) is a subfield of cryptography with the
 goal of creating protocols for multiple parties to jointly compute a function
 over their inputs without disclosing the inputs to each other.  
-Consider the following
+Here we consider the 
 problem of designing an information secure two-party multiplication protocol, which
-is a basic component in general 
+is a basic component used in general 
 solutions to privacy preserving computation~\cite{DBLP:conf/esorics/BogdanovLW08, DBLP:series/ais/DuA01}.
 
 Our problem is as follows: find a protocol for Alice and Bob 
@@ -703,8 +703,8 @@ whatsoever about $\mathtt{input}(A)$ or $\mathtt{input}(B)$.
 Now that we have the functional correctness requirement, let us consider
 the nonfunctional security requirement.
 Informally, the main security requirement is that 
-Alice should not learn the value $\mathtt{input}(B)$,
-and Bob should not learn the value $\mathtt{input}(A)$.
+Alice and Carol should not learn the value $\mathtt{input}(B)$,
+and Bob and Carol should not learn the value $\mathtt{input}(A)$.
 In the static honest-but-curious adversary model, one assumes that 
 the parties -- Alice, Bob, and Carol -- have an incentive to 
 deduce as much information as possible from the transcripts
@@ -712,20 +712,20 @@ of the protocol, but they do not deviate from it nor collude.
 In other words, this model captures the situation when 
 an external attacker is allowed to look over
 either Alice, Bob, or Carol's shoulder during the computation, 
-but cannot influence its outcome.
-
-{\em{Check: In secure multi-party computation, the security requirement is formalized
-in the simulator paradigm by requiring the existence 
+but cannot influence its outcome%
+\footnote{%
+In secure multi-party computation, the security requirement is formalized
+in the ``simulator'' paradigm by requiring the existence 
 of a simulator that, for every input, generates a transcript of the protocol's execution 
 for each party,
-given only its input an its output,
+given only its input and its output,
 that is undistinguishable from a transcript obtained in an actual execution.
-The key observation is that, since the simulator only uses the 
+The idea is that, since the simulator only uses the 
 input and the output of the party, and none of the 
 messages exchanged during the execution, 
 a protocol's execution is essentially equivalent
-to the ideal scenario where the parties provide their 
-inputs to an uncorruptible trusted party that does the whole computation.}}
+to the ``ideal'' secure scenario where the parties provide their 
+inputs to an uncorruptible trusted party that does the whole computation.}.
 
 How can we use the bounded program synthesis approach to discover the
 secure multiplication protocol?
@@ -746,10 +746,6 @@ and
 component $\mathtt{identity}$ performs no operation and just returns
 its argument. Thus, we have $10$ components in total, as we also
 show at the top in Figure~\ref{fig:ex0}.
-
-Next, let us fix a communication schedule between the parties.
-This will define the family of protocols we are interested 
-in, as shown in Figure~\ref{fig:example-topology}.
 
 \begin{figure}
 \centering
@@ -785,7 +781,11 @@ in, as shown in Figure~\ref{fig:example-topology}.
 \caption{High-level synthesis sketch for secure multiplication}
 \end{figure}
 
-The structure of the protocol is as follows:\\
+Next, let us fix a communication schedule between the parties.
+%This will define the family of protocols we are interested 
+%in, as shown in Figure~\ref{fig:example-topology}.
+The structure of the protocol, as shown in Figure~\ref{fig:example-topology},
+is as follows:\\
 (1) $C$ computes some values $(v_1, \ldots, v_4)$ first ($5$ lines), \\
 (2) $C$ sends $(v_1, v_2)$ to $A$ and  $(v_3, v_4)$ to $B$,\\
 (3) $A$ computes $v_5$ ($1$ line) and sends it to $B$,\\
@@ -798,23 +798,29 @@ Nevertheless, even if such a structure is not available, one could either
 pick a general-enough structure, or
 iterate over such structures, to discover the desired protocol.
 Hence, intuitively, our synthesis problem consists on
-finding programs
-$P_C, P_{A,1}, P_{B,1}, P_{A,1}, P_{B,1}$ such that
-$(v_1, \ldots, v_4) = P_c()$,
-$v_5 = P_{A,1}(v_1, v_2, \mathtt{input}(A))$,
-$(v_6, v_7) = P_{B,1}(v_3, v_4, \mathtt{input}(B))$,
-$\mathtt{output}(A) = P_{A,2}(v_1, v_2, v_6, v_7, \mathtt{input}(A))$,
-$\mathtt{output}(B) = P_{B,2}(v_1, v_2, v_5, \mathtt{input}(B))$,
+finding straight-line programs
+$P_C, P_{A,1}, P_{B,1}, P_{A,2}, P_{B,2}$ such that
+\begin{eqnarray*}
+  (v_1, \ldots, v_4) &=& P_c(),
+\\
+v_5 &=& P_{A,1}(v_1, v_2, \mathtt{input}(A)),
+\\
+(v_6, v_7) &=& P_{B,1}(v_3, v_4, \mathtt{input}(B)),
+\\
+\mathtt{output}(A) &=& P_{A,2}(v_1, v_2, v_6, v_7, \mathtt{input}(A)),
+\\
+\mathtt{output}(B) &=& P_{B,2}(v_1, v_2, v_5, \mathtt{input}(B)),
+\end{eqnarray*}
 and $\mathtt{output}(B)$ and $\mathtt{output}(A)$
 satisfy our correcteness requirement and the overall
 protocol satisfies our security requirement.
-
-Here, when we say party $A$ computes some values
-with program $P_{A,1}$, we mean that party $A$ performs a 
-sequential composition of the components available to it; that is,
-$P_{A,1}$ is a straight-line program.
+%
+%Here, when we say party $A$ computes some values
+%with program $P_{A,1}$, we mean that party $A$ performs a 
+%sequential composition of the components available to it; that is,
+%$P_{A,1}$ is a straight-line program.
 The set of components available to a party can vary, and this knowledge
-is part of the input to the synthesis tool.  
+can be specified in the input to the synthesis tool.  
 We also assume we are given an upper
 bound on the length of the straight-line programs
 used by each party (shown in brackets above).   
@@ -823,11 +829,12 @@ used by each party (shown in brackets above).
 The complete sketch is shown in Figure~\ref{fig:ex0}.
 So far, the problem formulation
 is similar to the component-based synthesis problem~\cite{bitvector}.
-
-Once we have the library of ten components, and the structure of the protocol
-above, we have what can be called a ``sketch'' of the protocol.  Now, we need
-to specify the requirements -- the functional correctness requirement,
-$$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B),$$
+%
+%Once we have the library of ten components, and the structure of the protocol
+%above, we have what can be called a ``sketch'' of the protocol.  
+Now, we need
+to specify the requirements -- the functional correctness requirement
+%$$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B),$$
 and the security requirement.
 
 Let us first focus on the correctness requirement. If we give each of the $10$
