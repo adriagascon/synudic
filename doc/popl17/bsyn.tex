@@ -3735,7 +3735,7 @@ used in the mode to be synthesized. This is not ideal, since
 a bad choice might be a source of unsoundness in the decryptability check.
 In the present work, we address both these issues using duality and 
 obtain a significant improvement with respect to~\cite{TGD15:CADE}
-and ~\cite{DBLP:conf/csfw/MalozemoffKG14}.
+and~\cite{DBLP:conf/csfw/MalozemoffKG14}.
 The crucial observation is that the correctness check used 
 in~\cite{DBLP:conf/csfw/MalozemoffKG14} is in fact an instance of the duality principle, 
  and hence it can be 
@@ -3744,7 +3744,28 @@ to ensure correctness
 it is not necessary to synthesize a decryption scheme, but instead check for ``decryptability'',
 which 
 allows to reduce synthesis to an $\exists\exists$ satisfiability problem ($\Phi_{\exists\exists}$
-from Section~\ref{sec:synthesis}).
+from Section~\ref{sec:synthesis}). 
+This alternative approach resulted in a reduction in running time
+from ~100 seconds (using the $\Psi_{\exists\forall}$ approach described above) to
+~1 second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
+Moreover, another benefit of 
+reducing synthesis to an $\exists\exists$ satisfiability problem
+is that we can leverage the incremental solving capabilities
+of SMT solvers such as Yices and Z3 to efficiently
+find hundreds of variants of block cipher modes.
+%While, as reported in~\cite{DBLP:conf/csfw/MalozemoffKG14},
+%their approach ``can synthesize secure modes of operation with $\leq 10$ instructions
+%in around $7$ minutes on a standard laptop'',
+Our implementation, based on the dual principle,
+find hundreds 
+of correct models of operations in less $5$ minutes in a regular laptop,
+including all the common ones mentioned above.
+It is not difficult to include additional 
+dual semantics or library extensions/restrictions to synthesize
+modes of operation with certain properties, e.g.
+using only the encryption algorithm of the block cipher, 
+or easy to parallelize (such as CTR).
+
 
 %ADRIA: Trying to safe space
 %The insight is that to synthesize, it doesn't matter what
@@ -3796,7 +3817,7 @@ without further checks being necessary.
 %   organization={IEEE}
 %}
 
-\subsection{Synthesizing padding-based schemes.}
+\subsection{Padding-based schemes}
 
 In public key cryptography, padding is the process of preparing a
 message for encryption.  % A modern form of padding is OAEP, which is
@@ -3838,6 +3859,35 @@ the cryptographic functions used in the padding scheme and
 %% Later, we used duality to replace the primal semantics with a
 %% dual semantics that captured ``decryptability'' constraints directly.
 
+\subsection{Secure multiplication}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
+\label{fig:plot-sec-mult}
+\caption{From left to right, the data points correspond to running time and approximate search
+space size of the following sketches: 
+(1) correct protocol, 
+(2) first line of $A$'s program,
+(3) messages from $C$,
+(4) messages from $C$ and $B$,
+(5) arithmetic operations in $A$ and $B$,
+(6) arithmetic operations in $C$, and messages from $C$ and $B$,
+(8) arithmetic operations,
+(8) arithmetic operations and messages from $B$,
+(9) arithmetic operations and messages from $C$ and $A$,
+(10) arithmetic operations and messages from $C$ and $B$,
+(11) arithmetic operations in $A$ and $B$, and program for $C$,
+(12) arithmetic operations in $A$, and programs for $C$ and $B$,
+(13) All but first line of $A$'s program, and programs for $C$ and $B$,
+(14) Programs for $A$, $B$, and $C$,
+(15) Programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
+The unsat instances are obtaines from (1)-(15) by adding the additional
+restriction that $C$ cannot use multiplication. This prevents this
+party from generated appropriately correlated random data,
+which results in unsatisfiable sketches.
+}
+\end{figure}
 
 
 \subsection{Oblivious Transfer}
@@ -3986,11 +4036,6 @@ protocol satisfies our security requirement.
 }
 \end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
-\label{fig:plot-sec-mult}
-\end{figure}
 
 
 Table~\ref{table} presents some statistics on our effort to synthesize 
