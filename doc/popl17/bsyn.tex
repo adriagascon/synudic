@@ -3740,13 +3740,13 @@ side.
 \endignore}
 
 
-\section{Synthesizing Cryptographic Schemes}
+\section{Cryptographic Schemes}
 \label{sec:application}
 
 In this section, we present some examples of cryptographic schemes that we
 were able to synthesize using the duality principle.
 Our synthesis tool takes as input a program sketch and multiple primal 
-and dual component generators, along with requirements
+and dual interpretations of components, along with requirements
 specified on these semantics. It solves the synthesis problem by
 generating and solving either 
 the $\Phi_{\exists\forall}$ formula (in case there are only primals),
@@ -3787,9 +3787,9 @@ Regarding correctness, the authors propose a
 fix-point algorithm analogous to our decryptability check presented in the previous
 section.
 
-The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14}:
+The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14} is
 a sound approximation technique for proving security,
-enables our synthesis approach based on dual interpretations.
+and it can encoded as a dual interpretation.
 A remarkable distinction of our approach, as opposed to the
 enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 is that we encode all the synthesis problem in a single logical constraint.
@@ -3859,8 +3859,8 @@ find hundreds of variants of block cipher modes.
 %their approach ``can synthesize secure modes of operation with $\leq 10$ instructions
 %in around $7$ minutes on a standard laptop'',
 Our implementation, based on the dual principle,
-find hundreds 
-of correct models of operations in less $5$ minutes in a regular laptop,
+found hundreds 
+of correct modes of operation in less than $5$ minutes on a regular laptop,
 including all the common ones mentioned above.
 It is not difficult to include additional 
 dual semantics or library extensions/restrictions to synthesize
@@ -3962,7 +3962,7 @@ the cryptographic functions used in the padding scheme and
 %% dual semantics that captured ``decryptability'' constraints directly.
 
 \subsection{Secure multiplication}
-In Section~\label{sec:ex}, we presented an application
+In Section~\ref{sec:ex}, we presented an application
 of our synthesis methodology to synthesize a secure 2-party
 computation multiplication protocol that relies on a third semi-trusted
 party. As explained above, our synthesis tool takes as input a sketch of the 
