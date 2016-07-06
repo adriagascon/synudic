@@ -29,6 +29,7 @@
 \def\Stmtd{{\tt{Stmtd}}}
 \def\psp{{\tt{PSp}}}
 \def\psd{{\tt{PSd}}}
+\def\psa{{\tt{PSa}}}
 \def\semp{{\tt{Semp}}}
 \def\semd{{\tt{Semd}}}
 % -------New
@@ -47,7 +48,6 @@
 %\def\Vt{{\tt{VarsB}}}
 \def\domp{{\tt{Domp}}}
 \def\domd{{\tt{Domd}}}
-\def\doma{{\tt{Doma}}}
 \def\paths{{\tt{Paths}}}
 %\def\pps{{\tt{PPS}}}
 %\def\Stmt{{\tt{Stmt}}}
@@ -1144,7 +1144,7 @@ variables $\Vd$ to the domain $\domd$.
   % \mathit{Program\ \ states}
   \psp \; := \;
   \{ \sigma: \Vp \rightarrow \domp \}
-& \quad &
+&  &
   \psd \; := \;
   \{ \ds: \Vd \rightarrow \domd \}
 \end{eqnarray*}
@@ -1815,8 +1815,8 @@ is necessarily a constant.
   leaves $l_1$ unconstrained here because $y := 0.0$ does not impose 
   any constraint on the dual value of $l_1$ -- both $l_1 = \mathit{true}$
   and $l_1 = \mathit{false}$ are consistent with $y := 0.0$.
-  Here, thinking in terms of greatest fixpoint, and the dual constraints 
-  removing possible models will be helpful.
+  %Here, thinking in terms of greatest fixpoint, and the dual constraints 
+  %removing possible models will be helpful.
   %Program statements that come further below Line $l_3$
   %in the program can also constrain the dual program variable $l_3$.
   %Specifically, even if $z$ is known to be a constant (Line $l_2$), we want to keep the option open
@@ -2225,7 +2225,7 @@ variables in $V$ and ignore the other variables).
 \end{definition}
 
 \begin{remark}
-  In sharp contrast to the above,
+  In sharp contrast to Definition~\ref{def:abs0},
   recall that in the usual notion of abstraction (that relates two primals),
   we say $Sp_2$ is an abstraction of $Sp_1$ if 
   $Sp_1 \subseteq \bigcup_{s\in Sp_2}\gamma(s)$.
@@ -2332,7 +2332,7 @@ said to abstract a set of primal program states (Definition~\ref{def:abs0}).
 %
   We can see that $\semd$ is an abstraction of $\semp$ by noting that
   it is so for each line of the program.
-  Consider the program $P$ consisting of the single line $l_1: y := 0.0;$. 
+  Consider the program $P$ consisting of the single line $l_1: y := 0.0$. 
   Here the set of primal input variables is $V_0=\{x_0\}$ and 
   defined variables is $V_1=\{y\}$.
   The set $Sd_0 = \{\theta\mid \theta(x_0)=\float\}$ is an 
@@ -2350,7 +2350,7 @@ said to abstract a set of primal program states (Definition~\ref{def:abs0}).
   and hence, $\theta(l_1)$ is really unconstrained: it can take any value.
   We have to show that if we pick {\em{any}} value for $\theta(l_1)$, say
   we pick $\zero$, 
-  $\semp(P)(Sp_0)|_V \subseteq \gamma(\langle l_0=\float,l_1=\zero)$,
+  $\semp(P)(Sp_0)|_V \subseteq \gamma(\langle l_0=\float,l_1=\zero\rangle)$,
   which is clearly true.
   % Now consider the dual semantics of program path consisting of one line, namely line $l_2$.
   % One constraint we have there is $l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)$.
@@ -2518,10 +2518,10 @@ This is a ``weak'' form of duality because it goes only in one direction
 Duality theorems in linear programming are of the strong form because
 they are ``if and only if'' statements. % relating the primal and the dual.
 If we use enumeration over all possible values to check a
-$\forall$ formula, we can find a violation of the $\forall$ verification constraint
+$\forall$ verification condition, we may find a violation of the $\forall$ formula
 after some finite search and thus, we may find a bug.
-If we use enumeration over all possible values to check a
-$\exists$ formula, we can find a suitable valuation of the dual exists-variables 
+If we use enumeration over all possible values to check the dual
+$\exists$ formula, we may find a suitable valuation of the dual exists-variables 
 after some finite search, and thus we may find a proof.
 Hence, duality has an interesting use in program verification: it replaces a 
 ``search for bugs'' approach (violation of primal asserts)
@@ -2536,36 +2536,37 @@ We describe a generic approach for constructing a dual interpretation
 that will be an abstraction of the primal. 
 Let us assume we have some general technique (such as, predicate
 abstraction or abstract interpretation) for abstracting a program.
-Let $\doma$ be the set of all abstract states.
+Let $\psa$ be the set of all abstract program states.
 Let us say we have proof rules that generate valid Hoare triples
 $\{\phi_1\}P\{\phi_2\}$ over the abstract states, where $P$ is a program,
-$\phi_1,\phi_2$ are elements of $\doma$.
+$\phi_1,\phi_2$ are elements of $\psa$.
 Now, to define a dual interpretation, we first parameterize the elements
-of $\doma$. Say, we have a template $\Phi(\vec{u})$ that contains parameters
+of $\psa$. Say, we have a template $\Phi(\vec{u})$ that contains parameters
 $\vec{u}$ such that 
-$$\doma = \{\Phi(\vec{u}) \mid \vec{u}\in\domd\}$$
-In other words, we can generate all abstract elements
+$$\psa = \{\Phi(\vec{c}) \mid \vec{c}\in\domd\}, \mbox{ for some set $\domd$}$$
+In other words, we can generate all abstract program states
 by instantiating the parameters $\vec{u}$ from the set $\domd$.
 The set $\domd$ forms our dual domain, and 
 $\vec{u}_{l1},\vec{u}_{l2},\ldots$ form the dual variables, where
 $l1,l2,\ldots$ are all the program locations (nodes in the program graph).
 Finally, we need to define the dual meaning of each program statement.
 For a given program statement/fragment $P$, we consider the proof rules
-that generate valid Hoare triples $\{\phi_1\}P\{\phi_2\}$, and generate
+that generate valid Hoare triples $\{\phi_1\}P\{\phi_2\}$, and try to generate
 a constraint $\psi_P(\vec{u},\vec{v})$ such that the following holds:
 $$
  \forall \vec{u},\vec{v}:
- \psi_P(\vec{u},\vec{v} \;\Rightarrow\;
-   \{\phi_1\}P\{\phi_2\}
+ \psi_P(\vec{u},\vec{v}) \;\Rightarrow\;
+ \{\Phi(\vec{u})\}P\{\Phi(\vec{v})\}
 $$
-If we can find such $\psi_P$ (that are not equivalent to $\mathit{false}$),
-then these constraints will define the dual meaning of $P$.
+If we can find such a $\psi_P$ (that is not equivalent to $\mathit{false}$),
+then this constraint will form the dual meaning of $P$.
 
 We would like to emphasize two points here. 
 First,
 the task of constructing a dual interpreation that
-is an abstraction of the primal will not succeed always (otherwise,
-for example, we would have NP=co-NP). 
+is an abstraction of the primal will not succeed always, because we may
+not find such $\psi_P$.
+% (otherwise, for example, we would have NP=co-NP). 
 Second, while abstract duals are a powerful concept, dual interpretations
 that are {\em{not}} abstractions of the primal also prove to be
 immensely useful, especially in the application to synthesis, where they
@@ -3977,13 +3978,13 @@ Figure~\ref{fig:plot-sec-mult} reports
 running times and approximated
 search space size, i.e. $|{\cal F}|$,
 for $30$ variants of our sketch presented in 
-Section~\label{sec:ex}.
+Section~\ref{sec:ex}.
 
 The first $15$ variants of our sketch are satisfiable 
 (blue trace in the plot),
 and were obtained in the following way:
 we started from a sketch whose only solution 
-is the solution reported in~Section~\label{sec:ex},
+is the solution reported in~Section~\ref{sec:ex},
 and hence such that $|{\cal F}| = 1$,
 Then, we increasingly relaxed the sketch,
 until we obtained a general one.
@@ -3998,7 +3999,7 @@ is (3) messages from $C$,
 (4) messages from $C$ and $B$,
 (5) arithmetic operations in $A$ and $B$,
 (6) arithmetic operations in $C$, and messages from $C$ and $B$,
-(8) arithmetic operations,
+(7) arithmetic operations,
 (8) arithmetic operations and messages from $B$,
 (9) arithmetic operations and messages from $C$ and $A$,
 (10) arithmetic operations and messages from $C$ and $B$,
@@ -4036,9 +4037,9 @@ corresponding SMT instances are available at
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
-\label{fig:plot-sec-mult}
 \caption{Running times for satisfiable and unsatisfiable variants of 
 the secure multiplication sketch.}
+\label{fig:plot-sec-mult}
 \end{figure}
 
 
@@ -4063,8 +4064,7 @@ about individual shares.
 By slightly modifying the sketch from the illustrative example 
 (Sec.~\ref{sec:ex}) we discovered the following 
 protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
-
-\begin{enumerate}
+\begin{enumerate}\itemsep=0em
     \item Carol generates two random numbers : $x$ which it forwards to Alice
         and $y$ which it forwards to Bob.
     \item Alice computes $\mathtt{input(A)} + x$ and sends to Bob,
@@ -4210,8 +4210,8 @@ and $g^xg^y$ is simply $g^{x+y}$.
 Using the above approach, we synthesized two different OT protocols:
 the first protocol we synthesized was also recently reported in~\cite{SimpleOT},
 and the second protocol we synthesized is the Naor-Pinkas oblivious transfer protocol~\cite{Pinkas}.
-The solutions were obtained in $\tilde 1$ and $\tilde 100$ seconds in a regular laptop, 
-using Yices as a backend solver.
+The solutions were obtained in about $1$ and $100$ seconds, respectively, 
+on a regular laptop using Yices as the solver.
 
 %\begin{remark}
 Because of the approximations involved in capturing the security
@@ -4306,14 +4306,15 @@ often using (least) fixpoint style computation,
 whereas dual assertion checking is an ``exists'' check and is often performed directly
 by solving constraints.  One could encode the existence of an abstract fixpoint as a 
 dual program.  Verification using duality can be viewed as a  generalization of the 
-constraint-based approach for verification.  We also note that dual programs
+constraint-based approach for verification~\cite{Gulwani08:PLDI,Gulwani13:STTT}.
+Moreover, dual programs
 can be written that are completely unrelated to their primal counterparts.
 In fact, often properties related to security, such as
 secure information flow~\cite{DBLP:journals/cacm/DenningD77,DBLP:journals/jsac/SabelfeldM03},
 are tested by designing 
-dedicated ``type systems'' that are unrelated
+dedicated ``type systems'' unrelated
 to the concrete semantics~\cite{DBLP:conf/csfw/Smith01,DBLP:conf/csfw/MalozemoffKG14}.
-These are ideally captured in dual programs.
+These are elegantly captured as dual programs.
 
 Program synthesis has a long history and early work by Manna and Waldinger on
 deductive (theorem proving) synthesis~\cite{Manna71} was followed by more recent
@@ -4321,14 +4322,18 @@ work on inductive synthesis, where programs
 are not deduced, but synthesized iteratively by finding programs that work correctly on an ever-increasing
 input space.  This search is performed using powerful constraint solvers, 
 typically, Boolean Satisfiability solvers (SAT) and Satisfiability Modulo Theory solver (SMT).
-Apart from the inductive search technique, there are two other important aspects of the
-program synthesis problem that has rejuvenated interest in it.  First, the high-level description
-of the program intent need not be formal specification. It could be 
-an unoptimized program, or a set of input-output examples, or an incomplete specification~\cite{icse10}.  
-Second, the search space for programs need not be the set of 
-all valid programs.  It can be restricted by specifying
-a small set of user-defined primitives (component-based program synthesis), 
-giving syntactic restrictions or templates~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13,Solar05,Solar06,bitvector}.
+The various choices in the synthesis approach,
+correctness specification, and restrictions on the program search space,
+have been explored extensively~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13,Solar05,Solar06,bitvector,icse10}.
+%
+%Apart from the inductive search technique, there are two other important aspects of the
+%program synthesis problem that has rejuvenated interest in it.  First, the high-level description
+%of the program intent need not be formal specification. It could be 
+%an unoptimized program, or a set of input-output examples, or an incomplete specification~\cite{icse10}.  
+%Second, the search space for programs need not be the set of 
+%all valid programs.  It can be restricted by specifying
+%a small set of user-defined primitives (component-based program synthesis), 
+%giving syntactic restrictions or templates~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13,Solar05,Solar06,bitvector}.
 % For example, imperative programs can be obtained from a given sketch,
 % as long as their intended behavior is also
 % provided~\cite{DBLP:journals/sttt/Solar-Lezama13}; efficient bitvector
@@ -4347,7 +4352,7 @@ giving syntactic restrictions or templates~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13
 Logically, most of the synthesis algorithms are solving
 an $\exists\forall$ problem.
 Synthesis using duality is a principled way to reduce synthesis to an
-$\exists\exists$ problem, and it subsumes both
+$\exists\exists$ problem, and by writing suitable duals, one can also incorporate
 grammar-based syntactic pruning of program search space,
 as well as, type-based pruning~\cite{DBLP:conf/pldi/OseraZ15} of synthesis search space (and more).
 % The main challenge in program synthesis is to efficiently reduce the
@@ -4366,7 +4371,8 @@ using program synthesis techniques~\cite{TGD15:CADE}, where security
 requirements are captured using constraints.
 The work described in~\cite{TGD15:CADE} falls in the $\Psi_{\exists\forall}$
 paradigm. Here, we introduce duality and use the resulting 
-$\Phi_{\exists\exists}$ paradigm for synthesis.
+$\Phi_{\exists\exists}$ paradigm for synthesis; thus, speeding up synthesis
+by atleast an order of magnitude.
 % is focused on the synthesis
 % application, and it does not formally present
 % and contrast primal and dual semantics.
@@ -4408,7 +4414,7 @@ databases is by computing {\em certain answers}, i.e.\
 query answers that hold {\em for every} possible instance
 of the incomplete database. In~\cite{Libkin14},
 it has been shown that, with a proper choice of semantics,
-computation of certain answers can often we reduced 
+computation of certain answers can often be reduced 
 to just evaluation. 
 Moreover, since computing certain answers is co-NP
 for commonly considered semantics, alternate semantics
@@ -4468,15 +4474,16 @@ or perform abstract analysis on the primal.
 %or a dual semantics, and we define these two concepts
 %in the paper.
 When the latter is possible, we get a weak duality principle
-whereby we can replace an desired $\forall$ check
+whereby we can replace a desired $\forall$ check
 by a stronger $\exists$
-check.
+check. 
 %In some cases, a it is possible to design dual semantics
 %that subsume requirements on a primal semantics; and thus,
 %make the primal semantics redundant.
 %
-This duality principle can speed up 
-program synthesis, and we demonstrated this on 
+It is important to recognize this duality principle to understand
+different verification approaches, as well as, speed up 
+program synthesis.  We demonstrated its effectiveness on 
 synthesis of cryptographic schemes.
 
 %\acks
