@@ -2,6 +2,58 @@ import re
 from constants import MAX_NUM_BLK_INPUTS
 import pyparsing
 
+def show_dot(results, tmp_filename):
+    for j, m in enumerate(results):
+        with open(tmp_filename, 'w') as tmp_file_desc:
+            tmp_file_desc.write("sat\n")
+            for e in m:
+                tmp_file_desc.write('(= {0} {1})\n'.format(e, m[e]))
+        model = parse_yices_output(tmp_filename, sketch.existsforall)
+        if model:
+            for b in sketch.blocks:
+                print "-- block \"{0}\" --".format(b.name)
+                if "_types_" in model:
+                    sketch.show_result(model, b, model["_types_"])
+                else:
+                    sketch.show_result(model, b)
+            with open('tmp_{}.tmp'.format(j), 'w') as out_file:
+                for b in sketch.blocks:
+                    out_file.write("-- block \"{0}\" --\n".format(b.name))
+                    if "_types_" in model:
+                        sketch.show_result(
+                            model, b, model["_types_"], out_fd=out_file)
+                    else:
+                        sketch.show_result(model, b, out_fd=out_file)
+            import re, os
+            import networkx as NX
+            G = NX.DiGraph()
+
+            with open('tmp_{}.tmp'.format(j)) as f:
+                for line in f:
+                    m1 = re.match('(\S+)\s+=\s+(\S+)\((\S+)\)', line.strip())
+                    if m1:
+                        lhs = m1.group(1)
+                        op = m1.group(2)+' '*len(G.nodes())
+                        rhs = m1.group(3)
+                        G.add_nodes_from([lhs, op, rhs])
+                        G.add_edges_from([(op, lhs), (rhs, op)])
+                    else:
+                        m2 = re.match('(\S+)\s+=\s+oplus\((\S+)\s*(\S+)\)', line.strip())
+                        if m2:
+                            lhs = m2.group(1)
+                            op = 'oplus'+' '*len(G.nodes())
+                            rhs1 = m2.group(2)
+                            rhs2 = m2.group(3)
+                            G.add_nodes_from([lhs, op, rhs1, rhs2])
+                            G.add_edges_from([(op, lhs), (rhs1, op), (rhs2, op)])
+
+            labels = {}
+            for n in G.nodes():
+                labels[n] = str(n)
+            NX.write_dot(G,'test_{}.dot'.format(j))
+            os.system('dot -Tpdf test_{0}.dot > test_{0}.pdf; okular test_{0}.pdf &'.format(j))
+
+
 class MyFile():
     def __init__(self, filepath):
         self.fd = open(filepath, 'w')

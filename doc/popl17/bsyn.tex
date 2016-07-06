@@ -3694,37 +3694,66 @@ generating and solving either
 the $\Phi_{\exists\forall}$ formula (in case there are only primals),
 the $\Phi_{\exists\exists}$ formula (in case there are only duals), or the 
 $\Psi_{\exists\forall}$ formula (in case there are both).
+Our synthesizer, along with all the examples 
+presented in the following Sections,
+and corresponding 
+SMT instances, are available at~\texttt{ommited for double-blindness}.
 Our emphasis in the descriptions below will be on the use of duality.
 
 \subsection{Block Cipher Modes}
 
 % \emph{Block cipher modes.} 
-We emulated the work of Malozemoff et al.~\cite{DBLP:conf/csfw/MalozemoffKG14} to
-synthesize block cipher modes of operations. {\em{Block ciphers}} are keyed, invertible
-functions that take a fixed length of bits (say 128 bits) to a random bit string
-of the same length. A {\em{block cipher mode}} $Enc$ uses the block cipher to encrypt
+%We emulated the work of Malozemoff et al.~\cite{DBLP:conf/csfw/MalozemoffKG14} to
+%synthesize block cipher modes of operations. 
+{\em{Block ciphers}} are keyed, invertible
+functions that map a fixed length bit string (say 128 bits) to a random bit string
+of the same length. A {\em{block cipher mode}} $Enc$ uses a block cipher to encrypt
 messages longer than this fixed length. We have {\em{two}} requirements:
 {\em{correctness}} of $Enc$, which is captured by the
 existence of a decryption algorithm $Dec$ such that $\forall k, m : Dec_k(
 Enc_k( m ) ) = m$, and {\em{security}}, which is expressed by the fact that no adversary with
 oracle access to $Enc$ is able to learn anything about random ciphertexts.
 
-Malozemoff et al. synthesize block cipher modes by generating every possible
-combination of instructions, filtering based on correctness, and then checking
-security. They are able to filter for correctness by checking if there is an
-appropriate path from the output nodes to the input nodes. 
-The key step is that, for checking security, they 
-treat the generated program as a graph and search for a labeling that
-satisfies certain inductive properties. They proof that any
-scheme that has such a labeling is secure against chosen-plaintext attacks,
-as long as a secure block cipher is used. 
-The graph labeling rules can be encoded as a dual program. 
+In~\cite{DBLP:conf/csfw/MalozemoffKG14}, Malozemoff et al. propose
+an algorithm for synthesis of block cipher modes.
+The algorithm proceeds by carefully enumerating candidate straight-line programs
+that correspond to the encoding of a single block and checking
+correctness and security for each of them.
+For the security check, the authors propose a 
+labeling system that guarantees that if a candidate straight-line program
+can be labelled satisfying certain constraints, 
+then it implements a secure block cipher.
+The search for the {\em existence} of a correct labelling
+is then implemented using an SMT solver.
+Regarding correctness, the authors propose a
+fix-point algorithm analogous to our decryptability check presented in the previous
+section.
+
+The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14}:
+a sound approximation technique for proving security,
+enables our synthesis approach based on dual interpretations.
+A remarkable distinction of our approach, as opposed to the
+enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
+is that we encode all the synthesis problem in a single logical constraint.
+
+%They are able to filter for correctness by checking if there is an
+%appropriate path from the output nodes to the input nodes. 
+%The key step is that, for checking security, they 
+%treat the generated program as a graph and search for a labeling that
+%satisfies certain inductive properties. They proof that any
+%scheme that has such a labeling is secure against chosen-plaintext attacks,
+%as long as a secure block cipher is used. 
+%The graph labeling rules can be encoded as a dual program. 
 % we 
 % translated their graph labeling rules directly into our synthesis tool as a dual
 % interpretation. 
-The dual program variables store the label assigned to the primal instruction,
-and the dual program emulates the rules of the graph labeling.
+%The dual program variables store the label assigned to the primal instruction,
+%and the dual program emulates the rules of the graph labeling.
 
+We present here two approaches to synthesize block cipher modes, 
+which highlight the flexibility of an approach to synthesis 
+based on a dual interpretation, as well as 
+an application of a duality principle.
 Our first approach at synthesis of block cipher modes, which is analogous to the 
 one in~\cite{TGD15:CADE}, is based on 
 specifying correctness 
@@ -3740,22 +3769,43 @@ and solving the $\Psi_{\exists\forall}$ formula shown in Section~\ref{sec:synthe
 
 The $\exists\forall$ approach has two main drawbacks: first, solving 
 $\Psi_{\exists\forall}$ turned out to be an expensive operation because 
-it required us to synthesize two programs at once. Moreover, 
+it required us to synthesize two programs at once, $Dec$ and $Enc$. Moreover, 
 it requires us to specify primal semantics for the block cipher
 used in the mode to be synthesized. This is not ideal, since
-a bad choice might be a source of unsoundness.
+a bad choice might be a source of unsoundness in the decryptability check.
 In the present work, we address both these issues using duality and 
-obtained a significant improvement with respect to~\cite{TGD15:CADE}.
-The crucial observation is that the
-correctness check used 
-in~\cite{DBLP:conf/csfw/MalozemoffKG14} can in fact be % an instance of the duality principle, 
-% and hence it can be 
+obtain a significant improvement with respect to~\cite{TGD15:CADE}
+and~\cite{DBLP:conf/csfw/MalozemoffKG14}.
+The crucial observation is that the correctness check used 
+in~\cite{DBLP:conf/csfw/MalozemoffKG14} is in fact an instance of the duality principle, 
+ and hence it can be 
 encoded as a second dual program; that is,
 to ensure correctness 
 it is not necessary to synthesize a decryption scheme, but instead check for ``decryptability'',
 which 
 allows to reduce synthesis to an $\exists\exists$ satisfiability problem ($\Phi_{\exists\exists}$
-from Section~\ref{sec:synthesis}).
+from Section~\ref{sec:synthesis}). 
+This alternative approach resulted in a reduction in running time
+from ~100 seconds (using the $\Psi_{\exists\forall}$ approach described above) to
+~1 second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
+Moreover, another benefit of 
+reducing synthesis to an $\exists\exists$ satisfiability problem
+is that we can leverage the incremental solving capabilities
+of SMT solvers such as Yices and Z3 to efficiently
+find hundreds of variants of block cipher modes.
+%While, as reported in~\cite{DBLP:conf/csfw/MalozemoffKG14},
+%their approach ``can synthesize secure modes of operation with $\leq 10$ instructions
+%in around $7$ minutes on a standard laptop'',
+Our implementation, based on the dual principle,
+find hundreds 
+of correct models of operations in less $5$ minutes in a regular laptop,
+including all the common ones mentioned above.
+It is not difficult to include additional 
+dual semantics or library extensions/restrictions to synthesize
+modes of operation with certain properties, e.g.
+using only the encryption algorithm of the block cipher, 
+or easy to parallelize (such as CTR).
+
 
 %ADRIA: Trying to safe space
 %The insight is that to synthesize, it doesn't matter what
@@ -3807,7 +3857,7 @@ without further checks being necessary.
 %   organization={IEEE}
 %}
 
-\subsection{Synthesizing padding-based schemes.}
+\subsection{Padding-based schemes}
 
 In public key cryptography, padding is the process of preparing a
 message for encryption.  % A modern form of padding is OAEP, which is
@@ -3849,6 +3899,35 @@ the cryptographic functions used in the padding scheme and
 %% Later, we used duality to replace the primal semantics with a
 %% dual semantics that captured ``decryptability'' constraints directly.
 
+\subsection{Secure multiplication}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
+\label{fig:plot-sec-mult}
+\caption{From left to right, the data points correspond to running time and approximate search
+space size of the following sketches: 
+(1) correct protocol, 
+(2) first line of $A$'s program,
+(3) messages from $C$,
+(4) messages from $C$ and $B$,
+(5) arithmetic operations in $A$ and $B$,
+(6) arithmetic operations in $C$, and messages from $C$ and $B$,
+(8) arithmetic operations,
+(8) arithmetic operations and messages from $B$,
+(9) arithmetic operations and messages from $C$ and $A$,
+(10) arithmetic operations and messages from $C$ and $B$,
+(11) arithmetic operations in $A$ and $B$, and program for $C$,
+(12) arithmetic operations in $A$, and programs for $C$ and $B$,
+(13) All but first line of $A$'s program, and programs for $C$ and $B$,
+(14) Programs for $A$, $B$, and $C$,
+(15) Programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
+The unsat instances are obtaines from (1)-(15) by adding the additional
+restriction that $C$ cannot use multiplication. This prevents this
+party from generated appropriately correlated random data,
+which results in unsatisfiable sketches.
+}
+\end{figure}
 
 \subsection{Dining Cryptographers}
 
@@ -4072,11 +4151,6 @@ protocol satisfies our security requirement.
 }
 \end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
-\label{fig:plot-sec-mult}
-\end{figure}
 
 
 Table~\ref{table} presents some statistics on our effort to synthesize 

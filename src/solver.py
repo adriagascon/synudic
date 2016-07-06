@@ -4,9 +4,10 @@ import time
 import subprocess
 import re
 import sexpParser
+import os
 
 from constants import *
-from utils import gen_arg_accessor, MyFile
+from utils import gen_arg_accessor, MyFile, show_dot
 from yices_to_z3 import *
 
 class Solver(Sketch):
@@ -139,13 +140,8 @@ class Solver(Sketch):
                 content.append('(show-model)')
         content.fd.close()
 
-
-class YicesSolver(Solver):
-    def __init__(self):
-        Solver.__init__(self)
-
     def parse_output(self, filename, existsforall):
-        def parse_yices_types(typs): #{{{
+        def parse_yices_types(typs):
             model = {}
             for t in typs:
                 sexp = sexpParser.sexp.parseString(t, parseAll=False)
@@ -209,9 +205,16 @@ class YicesSolver(Solver):
                         # else:
                             # types[-1] += line.rstrip()
         if not existsforall:
-            print types
+            pass
             #model["_types_"] = parse_yices_types(types)
         return model
+
+
+class YicesSolver(Solver):
+    def __init__(self):
+        Solver.__init__(self)
+
+ 
 
     def solve(self, dont_run=False):
         tmp_filename = 'tmp.txt'
@@ -322,3 +325,55 @@ class Z3Solver(Solver):
         results = get_models(f, -1 if self.enumerate_solutions else 1)
         elapsed_time = time.time() - start_time
         print 'elapsed_time: {}'.format(elapsed_time)
+        # tmp_filename = 'tmp.txt'
+        # for j, m in enumerate(results):
+        #     with open(tmp_filename, 'w') as tmp_file_desc:
+        #         tmp_file_desc.write("sat\n")
+        #         for e in m:
+        #             tmp_file_desc.write('(= {0} {1})\n'.format(e, m[e]))
+        #     model = self.parse_output(tmp_filename, self.existsforall)
+        #     if model:
+        #         for b in self.blocks:
+        #             print "-- block \"{0}\" --".format(b.name)
+        #             if "_types_" in model:
+        #                 self.show_result(model, b, model["_types_"])
+        #             else:
+        #                 self.show_result(model, b)
+            # with open('tmp_{}.tmp'.format(j), 'w') as out_file:
+                #     for b in self.blocks:
+                #         out_file.write("-- block \"{0}\" --\n".format(b.name))
+                #         if "_types_" in model:
+                #             self.show_result(
+                #                 model, b, model["_types_"], out_fd=out_file)
+                #         else:
+                #             self.show_result(model, b, out_fd=out_file)
+
+            # import networkx as NX
+            # G = NX.DiGraph()
+
+            # with open('tmp_{}.tmp'.format(j)) as f:
+            #     for line in f:
+            #         m1 = re.match('(\S+)\s+=\s+(\S+)\((\S+)\)', line.strip())
+            #         if m1:
+            #             lhs = m1.group(1)
+            #             op = m1.group(2)+' '*len(G.nodes())
+            #             rhs = m1.group(3)
+            #             G.add_nodes_from([lhs, op, rhs])
+            #             G.add_edges_from([(op, lhs), (rhs, op)])
+            #         else:
+            #             m2 = re.match('(\S+)\s+=\s+oplus\((\S+)\s*(\S+)\)', line.strip())
+            #             if m2:
+            #                 lhs = m2.group(1)
+            #                 op = 'oplus'+' '*len(G.nodes())
+            #                 rhs1 = m2.group(2)
+            #                 rhs2 = m2.group(3)
+            #                 G.add_nodes_from([lhs, op, rhs1, rhs2])
+            #                 G.add_edges_from([(op, lhs), (rhs1, op), (rhs2, op)])
+
+            # labels = {}
+            # for n in G.nodes():
+            #     labels[n] = str(n)
+            # NX.write_dot(G,'test_{}.dot'.format(j))
+            # os.system('dot -Tpdf test_{0}.dot > test_{0}.pdf; okular test_{0}.pdf &'.format(j))
+
+        #show_dot(results, tmp_filename)
