@@ -2660,11 +2660,9 @@ is the set of all $3$-tuples that relate the 2 inputs and 1 output of $f$.
 The following constraint imposes consistency of $vx_i$ values with respect to the primal semantics.
 \begin{eqnarray*}
   \phi_2 & = & \bigwedge_{\substack{i,j,k\in 1..9\\ f\in\Sig}}
-   \begin{array}{l}
     (a_{i1} = j \wedge a_{i2}=k \wedge f_i=f)\;\Rightarrow\;
-    \\
-    \qquad (vx_j,vx_k,vx_i) \in \semp(f) 
-  \end{array}
+      \\*[-2.0em] & & \qquad\qquad\qquad 
+     (vx_j,vx_k,vx_i) \in \semp(f) 
 \end{eqnarray*}
 
 \smallskip\noindent
@@ -2722,7 +2720,7 @@ The following constraint imposes consistency of the dual values
 (assigned to the dual variables) with respect to the dual semantics.
 \begin{eqnarray*}
   \phi_3 & = & \bigwedge_{\substack{i,j,k\in 1..9\\ f\in\Sig}} (a_{i1} = j \wedge a_{i2}=k \wedge f_i=f)\;\;\Rightarrow\;\;
-      % \\*[-2.5em] & & \qquad\qquad\qquad 
+      \\*[-2.0em] & & \qquad\qquad\qquad 
     (tx_j,tx_k,tx_i)\in \semd(f)
 \end{eqnarray*}
 
