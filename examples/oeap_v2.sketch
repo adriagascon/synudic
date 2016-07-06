@@ -1,0 +1,152 @@
+(oeap_sketch
+
+  (comment "NEW SYNUDIC LANGUAGE")
+  (comment "Usage: python Synudic.py oeap.sketch na=3 nlevels=7")
+  (comment "type: <istopxor> <istoph> <istopg> <isrand> <issizem>")
+
+  (parameters na nlevels)
+
+  ; library of components -- SAME AS BEFORE
+  (library
+    (G 1)
+    (H 1)
+    (oplus 2)
+    (identity 1)
+  )
+
+  ; the program sketch -- SAME AS BEFORE
+  (blocks
+    (lm 1 ((input m)))
+    (lr 1 ((input r)))
+    (l1 na ((oplus (lm lr -) (lm lr -)) (G (lm lr -)) (H (lm lr -))))
+    (l2 2  ((identity (l1 lr))))
+  )
+
+  ; primal interpretation: there may be zero, one, or more primal interpretations
+  ; the string "value" indicates the name we will use to refer to this primal value, e.g. in ensure
+  ; MOVING the primal part of "ensure" inside the PRIMAL s-expression
+  (primal value
+    (decls
+      (define-type value (bitvector 5)) ;; the type name must correspond with the interpretation name
+      (define G::(-> value value) (lambda (x::value) (bv-rotate-right x 2)))
+      (define H::(-> value value) (lambda (x::value) (bv-rotate-left x 3)))
+      (define oplus::(-> value value value) (lambda (x::value y::value) (bv-xor x y)))
+      (define identity::(-> value value) (lambda (x::value) x))
+    )
+    (ensure true)
+  )
+
+  ; the string "type" indicates the name we will use to refer to this dual value, e.g. in ensure
+  ; MOVING the dual part of "ensure" inside this dual s-expression
+  (dual typ
+    (decls
+      (define-type typ (bitvector 6)) ;; the type name must correspond with the interpretation name
+      (define ism::(-> typ bool) (lambda (x::typ) (bit x 0)))
+      (define isr::(-> typ bool) (lambda (x::typ) (not (bit x 0))))
+      (define isrand::(-> typ bool) (lambda (x::typ) (bit x 1)))
+      (define istopg::(-> typ bool) (lambda (x::typ) (bit x 2)))
+      (define istoph::(-> typ bool) (lambda (x::typ) (bit x 3)))
+      (define istopx::(-> typ bool) (lambda (x::typ) (bit x 4)))
+      (define size-m::(-> typ bool) (lambda (x::typ) (bit x 5)))
+      (define size-r::(-> typ bool) (lambda (x::typ) (not (bit x 5))))
+
+      (define H::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and (size-r y)
+              (size-m x)
+              (ism x)
+              (isr y)
+              (<=> (isrand x) (isrand y)) (not (istopg x))
+              (istoph y)
+              (not (istopg y))
+              (not (istopx y))
+              )))
+
+      (define G::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and (size-m y)
+              (size-r x)
+              (isr x)
+              (ism y)
+              (<=> (isrand x) (isrand y))
+              (not (istoph x)) (istopg y) (not (istoph y))
+              (not (istopx y))
+      )))
+
+      (define oplus::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and
+            (/= x y)
+            (= (size-m x) (size-m y))
+            (= (size-m y) (size-m z))
+            (or (and (ism x) (ism y) (ism z))
+                (and (isr x) (isr y) (isr z)))
+            (not (istopg z))
+            (not (istoph z))
+            (istopx z)
+            (or (istopg x) (istoph x) (istopg y) (istoph y))
+            (not (istopx x))
+            (not (istopx y))
+            (<=> (and (or (isrand x) (isrand y)) (/= x y)) (isrand z))
+            )))
+
+      (define identity::(-> typ typ bool) (lambda (x::typ y::typ) (= x y)))
+    )
+
+    (ensure
+      (and
+        (= (typ lm 1) (bool-to-bv true false false false false true))
+        (= (typ lr 1) (bool-to-bv false false false false true false))
+        (size-m (typ lm 1))
+        (size-r (typ lr 1))
+        (isrand (typ l2 1))
+        (isrand (typ l2 2))
+      )
+    )
+  )
+
+  ; the string "decr" is the name used to access this dual value
+  ; the string "PARAMETRIC" indicates this is a parametric dual type
+  ; the string "GLOBAL" indicates this attribute/type is global - it will not
+  ; be presented by attachment to functions
+  ; syntax: dual|primal name { FLAGS } - flags are always uppercase
+  (dual decr PARAMETRIC GLOBAL
+    (decls
+      (define-type decr bool) ;; parameterized type
+      (define known::(-> decr bool) (lambda (x::decr) x))
+      (define unknown::(-> decr bool) (lambda (x::decr) (not x)))
+      ;; this-level and next-level (-> lineType decr) will return the
+      ;; appropriate parametric variable inside a constraint declaration
+      ;; arg is a yices function (-> lineType int lineType) that is defined automatically
+      (constraint (nlevels)
+        ;; x iterated over each line number from blocks l1, l2, and all lines labeled input
+        (foreach ((x l1 l2 lm lr))
+          (= (next-level x)
+            (or
+              (this-level x)
+              (and (= (func x) G) (this-level (arg x 0)))
+              (and (= (func x) H) (this-level (arg x 0)))
+              (and (= (func x) oplus) (this-level (arg x 0)) (this-level (arg x 1)))
+              (forsome ((y l1 l2)) ; nested foreach
+                (or
+                  (and (= (func y) oplus) (= (arg y 0) x) (this-level y) (this-level (arg y 1)))
+                  (and (= (func y) oplus) (= (arg y 1) x) (this-level y) (this-level (arg y 0)))
+                  (and (= (func y) identity) (= (arg y 0) x) (this-level y))
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    (ensure
+      (and
+        (foreach ((x l1 l2 lr lm)) ;; splices expr replacing x with each line name
+          (=
+            (known (level x 1))
+            (or (= x (line l2 1)) (= x (line l2 2)))))
+        (known (level (line lm 1) nlevels))
+      )
+    )
+  )
+)

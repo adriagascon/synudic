@@ -1,0 +1,242 @@
+(secure_mult
+
+  (library
+    (identity 1)
+    (times 2)
+    (minus 2)
+    (plus 2)
+    (pickx 0)
+    (picky 0)
+    (pickr 0)
+    (input1 0)
+    (input2 0)
+    (picku 0)
+  )
+
+  (parameters nc na1 nb1 na2)
+
+  (blocks
+    (LCx1 1 ( (pickx) ) )
+    (LCx2 1 ( (pickr) ) )
+    (LCx3 1 ( (plus (LCx2) (LCx1)) ) )
+    (LCx4 1 ( (picky) ) )
+    (LCx5 1 ( (minus (LCx3) (LCx4)) ) )
+
+    (LCAx1 1 ( (identity (LCx1 LCx2 LCx3 LCx4 LCx5)) ))
+    (LCAx2 1 ( (identity (LCx1 LCx2 LCx3 LCx4 LCx5)) ))
+
+    (in1 1 ( (input1) ))
+    (LA1x1 1 ( (minus (in1) (LCAx2)) ))
+    (LABx1 1 ( (identity (LA1x1) )))
+    (LCBx1 1 ( (identity (LCx1 LCx2 LCx3 LCx4 LCx5)) ))
+    (LCBx2 1 ( (identity (LCx1 LCx2 LCx3 LCx4 LCx5)) ))
+    (in2 1 ( (input2) ))
+
+    (LB1x1 1 ( (plus (in2) (LCBx1)) ) )
+    (LB1x2 1 ( (times (in2) (LABx1)) ) )
+    (LB1x3 1 ( (minus (LB1x2) (LCBx2)) ) )
+
+    (LBAx1 1 ( (identity (LB1x1 LB1x3 LB1x3)) ))
+    (LBAx2 1 ( (identity (LB1x1 LB1x2 LB1x3)) ))
+
+    (LA2x1 1 ( (times (LBAx1) (LCAx2)) ) )
+    (LA2x2 1 ( (minus (LA2x1) (LCAx1)) ) )
+
+    (LB2x1 1 ( (identity (LB1x3)) ))
+  )
+
+  (dual typ
+    (decls
+        
+      (define-type index (scalar x y r a b u xy xr xa xb xu yr ya yb yu ra rb ru ab au bu))
+      (define-type typ (-> index real))
+
+      (define getP::(-> index typ) 
+       (lambda (w::index) (lambda (v::index) (ite (= v w) 1 0))))
+
+      (define forall_def::(-> (-> index bool) bool)
+       (lambda (f::(-> index bool))
+        (and (f x) (f y) (f r) (f a) (f b) (f u) (f xy) (f xr) (f xa) (f xb) (f xu) 
+             (f yr) (f ya) (f yb) (f yu) (f ra) (f rb) (f ru) (f ab) (f au) (f bu))))
+
+      (define setw::(-> typ index bool) 
+       (lambda (f::typ w::index) (and (= (f w) 1) (forall_def (lambda (v::index) (or (= v w) (= (f v) 0)))))))
+
+      (define coeff01::(-> typ bool)
+       (lambda (f::typ) (forall_def (lambda (w::index) 
+         (or (= (f w) 0) (= (f w) 1) (= (f w) (- 0 1)))))))
+
+      (define pickx::(-> typ bool) 
+       (lambda (f::typ) (setw f x)))
+
+      (define picky::(-> typ bool) 
+       (lambda (f::typ) (setw f y)))
+
+      (define pickr::(-> typ bool) 
+       (lambda (f::typ) (setw f r)))
+
+      (define input1::(-> typ bool) 
+       (lambda (f::typ) (setw f a)))
+
+      (define input2::(-> typ bool) 
+       (lambda (f::typ) (setw f b)))
+
+      (define picku::(-> typ bool) 
+       (lambda (f::typ) (setw f u)))
+
+      (define identity::(-> typ typ bool)
+        (lambda (x::typ z::typ) (forall_def (lambda (w::index) (= (x w) (z w))))))
+
+      (define plus::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and (coeff01 z)
+           (forall_def (lambda (w::index) (= (z w) (+ (x w) (y w))))))))
+
+      (define minus::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+         (and (coeff01 z)
+          (forall_def (lambda (w::index) (= (z w) (- (x w) (y w))))))))
+
+      (define my_prod::(-> real real real)
+        (lambda (x::real y::real) 
+         (ite (= x 1) y (ite (= x 0) 0 (- 0 y)))))
+
+      (define is_linear::(-> typ bool)
+        (lambda (f::typ)
+          (and (= (f xy) 0) (= (f xr) 0) (= (f xa) 0) (= (f xb) 0) (= (f xu) 0) 
+                            (= (f yr) 0) (= (f ya) 0) (= (f yb) 0) (= (f yu) 0) 
+                                         (= (f ra) 0) (= (f rb) 0) (= (f ru) 0) 
+                                                      (= (f ab) 0) (= (f au) 0) 
+                                                                   (= (f bu) 0))))
+
+      (define no_shared_term::(-> typ typ bool)
+        (lambda (f::typ g::typ)
+          (and 
+            (or (= (f x) 0) (= (g x) 0))
+            (or (= (f y) 0) (= (g y) 0))
+            (or (= (f r) 0) (= (g r) 0))
+            (or (= (f a) 0) (= (g a) 0))
+            (or (= (f b) 0) (= (g b) 0))
+            (or (= (f u) 0) (= (g u) 0)))))
+
+      (define times::(-> typ typ typ bool)
+        (lambda (f::typ g::typ h::typ)
+          (and (is_linear f) (is_linear g)
+               (no_shared_term f g)
+               (= (h x) 0)
+               (= (h y) 0)
+               (= (h r) 0)
+               (= (h a) 0)
+               (= (h b) 0)
+               (= (h u) 0)
+               (= (h xy) (+ (my_prod (f x) (g y)) (my_prod (f y) (g x))))
+               (= (h xr) (+ (my_prod (f x) (g r)) (my_prod (f r) (g x))))
+               (= (h xa) (+ (my_prod (f x) (g a)) (my_prod (f a) (g x))))
+               (= (h xb) (+ (my_prod (f x) (g b)) (my_prod (f b) (g x))))
+               (= (h xu) (+ (my_prod (f x) (g u)) (my_prod (f u) (g x))))
+               (= (h yr) (+ (my_prod (f y) (g r)) (my_prod (f r) (g y))))
+               (= (h ya) (+ (my_prod (f y) (g a)) (my_prod (f a) (g y))))
+               (= (h yb) (+ (my_prod (f y) (g b)) (my_prod (f b) (g y))))
+               (= (h yu) (+ (my_prod (f y) (g u)) (my_prod (f u) (g y))))
+               (= (h ra) (+ (my_prod (f r) (g a)) (my_prod (f a) (g r))))
+               (= (h rb) (+ (my_prod (f r) (g b)) (my_prod (f b) (g r))))
+               (= (h ru) (+ (my_prod (f r) (g u)) (my_prod (f u) (g r))))
+               (= (h ab) (+ (my_prod (f a) (g b)) (my_prod (f b) (g a))))
+               (= (h au) (+ (my_prod (f a) (g u)) (my_prod (f u) (g a))))
+               (= (h bu) (+ (my_prod (f b) (g u)) (my_prod (f u) (g b)))))))
+    ) 
+    
+
+    (ensure
+        (typ-plus (typ LA2x2 1) (typ LB2x1 1) (getP ab)))
+  ) 
+  
+
+  (dual random
+    (decls
+      (define-type random (bitvector 4))  
+      
+
+      (define is_random::(-> random bool)
+       (lambda (x::random)
+        (or (bit x 0) (bit x 1) (bit x 2) (bit x 3))))
+
+      
+      (define no_knowledge::(-> random random random random bool)
+        (lambda (x::random y::random z::random w::random)
+         (and
+          (not (= (bv-xor x y z w) "0b0000"))
+          (not (= (bv-xor x y z) "0b0000"))
+          (not (= (bv-xor x y w) "0b0000"))
+          (not (= (bv-xor x z w) "0b0000"))
+          (not (= (bv-xor y z w) "0b0000"))
+          (not (= (bv-xor x w) "0b0000"))
+          (not (= (bv-xor x z) "0b0000"))
+          (not (= (bv-xor y w) "0b0000"))
+          (not (= (bv-xor y z) "0b0000")))))
+
+      (define no_correlation_full::(-> random random bool)
+        (lambda (x::random y::random)
+         (or (and (xor (bit x 0) (bit y 0))
+                  (or (xor (bit x 1) (bit y 1))
+                      (xor (bit x 2) (bit y 2))
+                      (xor (bit x 3) (bit y 3)) ))
+             (and (xor (bit x 1) (bit y 1))
+                  (or (xor (bit x 2) (bit y 2))
+                      (xor (bit x 3) (bit y 3)) ))
+             (and (xor (bit x 2) (bit y 2))
+                  (xor (bit x 3) (bit y 3))))))
+
+      (define pickx::(-> random bool) 
+       (lambda (f::random) (= f "0b1000")))
+
+      (define picky::(-> random bool) 
+       (lambda (f::random) (= f "0b0100")))
+
+      (define pickr::(-> random bool) 
+       (lambda (f::random) (= f "0b0010")))
+
+      (define picku::(-> random bool) 
+       (lambda (f::random) (= f "0b0001")))
+
+      (define input1::(-> random bool) 
+       (lambda (f::random) (= f "0b0000")))
+
+      (define input2::(-> random bool) 
+       (lambda (f::random) (= f "0b0000")))
+
+      (define identity::(-> random random bool)
+        (lambda (x::random z::random) (= x z)))
+
+      (define plus::(-> random random random bool)
+        (lambda (x::random y::random z::random) 
+         (and (not (= x y))
+              (= z (bv-xor x y)))))
+
+      (define minus::(-> random random random bool)
+        (lambda (x::random y::random z::random) 
+         (and (not (= x y))
+              (= z (bv-xor x y)))))
+
+      (define times::(-> random random random bool)
+        (lambda (x::random y::random z::random) (= z (bv-or x y))))
+    ) 
+    
+
+    (ensure
+      (and (is_random (random LCAx1 1))
+           (is_random (random LCAx2 1))
+           (is_random (random LABx1 1))
+           (is_random (random LCBx1 1))
+           (is_random (random LCBx2 1))
+           (is_random (random LBAx1 1))
+           (is_random (random LBAx2 1))
+           (is_random (random LA2x2 1))
+           (is_random (random LB2x1 1))
+           (no_knowledge (random LCAx1 1) (random LCAx2 1) (random LBAx1 1) (random LBAx2 1))
+           (no_knowledge (random LCBx1 1) (random LCBx2 1) (random LABx1 1) (random LABx1 1))
+           
+           ))
+  ) 
+  
+)
