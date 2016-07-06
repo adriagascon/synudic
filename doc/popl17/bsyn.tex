@@ -3850,6 +3850,81 @@ the cryptographic functions used in the padding scheme and
 %% dual semantics that captured ``decryptability'' constraints directly.
 
 
+\subsection{Dining Cryptographers}
+
+Anonimity protocols such as the Dining Cryptographers protocol,
+proposed by Chaum~\cite{Chaum88}, are an interesting class of protocols for secure
+multi-party computation.
+The Dining Cryptographers' problem involves 3 cryptographers who decide to
+dine-in together. The restaurant allows for anonymous payment of the bill,
+which could be paid by, either the National Security Agency (NSA),
+or one of the three cryptogtaphers.
+The cryptographers respect each other's right to make an anonymous payment, 
+but want to find out whether the NSA paid.
+The original protocol proposed by Chaum is a two-stage protocol.
+In the first stage, every pair of cryptographers establish 
+a shared one-bit secret. 
+In the second stage, each cryptographer announces 
+whether the bits shared with him have
+\begin{itemize}
+    \item the same parity, if he did not pay the bill.
+    \item different parity, if he paid the bill.
+\end{itemize}
+An odd number of differences are uttered at the table if and only if
+one of the cryptographers paid for the dinner (assuming at most 
+one of the cryptographers' paid).
+The protocol ensures that if a cryptographer is paying, 
+neither of the other two learns anything about who made the payment, 
+by observing the announcements.
+
+The components used for the sketch are boolean operations such as \texttt{and},
+\texttt{or}, \texttt{xor} and \texttt{not}, and random generators \texttt{genAB},
+\texttt{genBC} and \texttt{genCA}.
+One way to express the functional requirement for the protocol is to 
+express the semantics and the correctness criteria in the domain of boolean variables,
+thus using the primal ($\exists \forall$) paradigm.
+Again, the correctness requirement, like in the case of secure 
+multiplication (Sec.~\ref{sec:ex}), can also be expressed in the
+abstract domain of boolean formulae expessed in Algebraic Normal Form 
+(XOR of AND of variables), thus allowing for synthesis using $\exists \exists$
+paradigm.
+In both cases, the non-functional security requirement
+can be expressed in another dual domain where the domain values
+maintain the different sources of randomness, 
+and interact differently with different logical operations.
+
+\subsection{Du-Atallah Secure Multiplication}
+
+Similar to the example in Sec.~\ref{sec:ex}, 
+Alice and Bob wish to carry out secure multiplication of 
+their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}$),
+with the help of Carol who distributes random values to both the parties.
+The only difference now is that Carol can perform some computation
+on the set of values it has access to. 
+Also, the functional requirement now specifies
+that the sum of the shares computed by Alice, Bob 
+and Carol equals the product of the initial values 
+that Alice and Bob had access to.
+That is, if \texttt{output(A)}, \texttt{output(B)} and \texttt{output(C)}
+respectively represent the shares computed by Alice, Bob and Carol, then
+$$
+\mathtt{output(A)} + \mathtt{output(B)} + \mathtt{output(C)} = \mathtt{input(A)}*\mathtt{input(B)}.
+$$
+As before, none of the public announcements should reveal anything
+about individual shares.
+
+By slightly modifying the sketch from the illustrative example 
+(Sec.~\ref{sec:ex}) we discovered the following 
+protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
+
+\begin{enumerate}
+    \item Carol generates two random numbers : $x$ which it forwards to Alice
+        and $y$ which it forwards to Bob.
+    \item Alice computes $\mathtt{input(A)} + x$ and sends to Bob,
+        and Bob computes $\mathtt{input(B)} + y$ and sends to Alice.
+    \item Alice, Bob and Carol announce $-x\times(y+b)$, $b\times(x+a)$ and 
+        $x\times y$ as their shares.
+\end{enumerate}
 
 \subsection{Oblivious Transfer}
 
