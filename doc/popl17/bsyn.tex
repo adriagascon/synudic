@@ -396,9 +396,10 @@ Our contributions are as follows:
     We identify a {\em{weak duality}} principle, which
     enables replacement of a forall check
     (program is correct for all inputs)
-    by an exists check (there exists a proof),
-    and thus allows us to perform
-    synthesis by solving an exists-exists constraint.
+    by an exists check (there exists a proof).
+    Duality allows us to perform
+    synthesis by solving an exists-exists constraint, which is
+    significantly faster to solve than an exists-forall constraint.
   \item We show that standard abstraction techniques provide one
     way of generating proof systems on which bounded proof
     search can be performed. Bounded proof search is performed by 
@@ -891,7 +892,7 @@ interpretation (as opposed to giving it the natural, or {\em{primal}}, interpret
         {\hoare{\mathtt{id}}{P}{\mathtt{assert(v+w=a*b)}}}%
         {v_{ab}+w_{ab}=1\;\wedge\; \bigwedge_{i\neq ab} v_i+w_i=0}%
       \end{eqnarray*}
-      \caption{Proof rules and generated constraints for the secure multiplication example: The first two columns show named proof rules for proving an example assertion for a program in the class of programs considered in Section~\ref{sec:ex}.  Essentially, the rules perform symbolic execution of the program.  The third column shows (some of the) constraints that are generated on the dual variables. Some of the restrictions on the proof rules that are considered for performing bounded proof search are shown inside square brackets; for e.g., we use $\timess$ only on linear arguments because we want all generated symbolic expressions to be at most quadratic. The constraints are over dual variables: $v_i$ denotes the value of the coefficient of the $i$-th monomial in the symbolic value of $v$. The index $i$ ranges over $I=L\cup NL$, where $L = \{x,y,r,u,a,b\}$ and $NL$ consists of all quadratic monomials over $L$.}
+      \caption{Selected proof rules and generated constraints for the secure multiplication example: The first two columns show named proof rules for proving an example assertion for a program in the class of programs considered in Section~\ref{sec:ex}.  Essentially, the rules perform symbolic execution of the program.  The third column shows (some of the) constraints that are generated on the dual variables. Some of the restrictions on the proof rules that are considered for performing bounded proof search are shown inside square brackets; for e.g., we use $\timess$ only on linear arguments because we want all generated symbolic expressions to be at most quadratic. The constraints are over dual variables: $v_i$ denotes the value of the coefficient of the $i$-th monomial in the symbolic value of $v$. The index $i$ ranges over $I=L\cup NL$, where $L = \{x,y,r,u,a,b\}$ and $NL$ consists of all quadratic monomials over $L$.}
   \label{fig:rules0}
 \end{figure*}
 
@@ -1752,12 +1753,12 @@ and dual assertion checking problems.
     \hline
     Program & Dual 1 & Dual 2 & Dual 3
     \\ \hline \hline
-    $l_0:\; \mathtt{input}\; x; $ & $\neg l_0$ & $l_0=\float$ & $l_0 \geq 0$ \\
+    $l_0:\; \mathtt{input}\; x_0; $ & $\neg l_0$ & $l_0=\float$ & $l_0 \geq 0$ \\
             $l_1:\; y := 0.0 ;$ & $\true$ %Adria: Shouldn't this be $l_1$
             & $\true$ %Adria: Shouldn't this be $l_1=\zero$
             & $l_1 \geq 0$ \\
             % $l_2:\; z := y*x ;$ & $l_2\Leftarrow l_0\wedge l_1$ & $\substack{l_2\neq\zero\Leftarrow (l_0\neq\zero\vee l_1\neq\zero)\wedge \\ l_2=\float\Leftarrow (l_0=\float\vee l_2=\float)}$ & $l_2\geq l_0+l_1+1$\\
-            $l_2:\; z := y*x ;$ & $l_2\Rightarrow l_0\wedge l_1$ & ${l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)\wedge}$ & $l_2\geq l_0+l_1+1$\\
+            $l_2:\; z := y*x_0 ;$ & $l_2\Rightarrow l_0\wedge l_1$ & ${l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)\wedge}$ & $l_2\geq l_0+l_1+1$\\
                                   & & $l_2=\int\Rightarrow (l_0\neq\float\wedge l_1\neq\float)$ & \\[0.4ex]
            $l_3:\; x := 1 + z;$ & $l_3\Rightarrow l_2$ & ${l_3\neq\zero \wedge (l_3=\int \Rightarrow l_2\neq\float)}$ & $l_3 \geq l_2$
     \\ \hline
@@ -2377,7 +2378,7 @@ said to abstract a set of primal program states (Definition~\ref{def:abs0}).
   We can see that $\semd$ is an abstraction of $\semp$ by noting that
   it is so for each line of the program.
   Consider the program $P$ consisting of the single line $l_1: y := 0.0$. 
-  Here the set of primal input variables is $V_0=\{x_0\}$ and 
+  For $P$, the set of primal input variables is $V_0=\{x_0\}$ and 
   defined variables is $V_1=\{y\}$.
   The set $Sd_0 = \{\theta\mid \theta(x_0)=\float\}$ is an 
   abstraction of, say, 
@@ -2604,10 +2605,13 @@ $$
 $$
 If we can find such a $\psi_P$ (that is not equivalent to $\mathit{false}$),
 then this constraint will form the dual meaning of $P$.
+The dual domain $\domd$, dual variables $\vec{u}_{li}$'s, and 
+the dual semantics $\psi_P$ together define 
+a dual that is an abstraction of the primal.
 
 We would like to emphasize two points here. 
 First,
-the task of constructing a dual interpreation that
+the task of constructing a dual interpretation that
 is an abstraction of the primal will not succeed always, because we may
 not find such $\psi_P$.
 % (otherwise, for example, we would have NP=co-NP). 
@@ -4130,20 +4134,25 @@ which could be paid by, either the National Security Agency (NSA),
 or one of the three cryptographers.
 The cryptographers respect each other's right to make an anonymous payment, 
 but want to find out whether the NSA paid.
+
 The original protocol proposed by Chaum is a two-stage protocol.
 In the first stage, every pair of cryptographers establish 
 a shared one-bit secret. 
-In the second stage, each cryptographer announces 
-whether the bits shared with him have
-\begin{itemize}\itemsep=0em
-    \item the same parity, if he did not pay the bill.
-    \item different parity, if he paid the bill.
-\end{itemize}
-An odd number of differences are uttered at the table if and only if
+In the second stage, each cryptographer announces the $\mathtt{xor}$
+of three bits: two bits shared with the two neighbors and one bit denoting
+if he paid the bill.
+%whether the bits shared with him have
+%\begin{itemize}\itemsep=0em
+    %\item the same parity, if he did not pay the bill.
+    %\item different parity, if he paid the bill.
+%\end{itemize}
+%An odd number of differences are uttered at the table 
+The $\mathtt{xor}$ of the three announced bits is $1$
+if and only if
 one of the cryptographers paid for the dinner (assuming at most 
 one of the cryptographers' paid).
 The protocol ensures that if a cryptographer is paying, 
-neither of the other two learns anything about who made the payment, 
+neither of the other two learns anything about who made the payment
 by observing the announcements.
 
 The components used for the sketch are Boolean operations such as \texttt{and},
@@ -4528,8 +4537,9 @@ check.
 %make the primal semantics redundant.
 %
 It is important to recognize this duality principle to understand
-different verification approaches, as well as, speed up 
-program synthesis.  We demonstrated its effectiveness on 
+different verification approaches, as well as, to significantly speed up 
+program synthesis, where search for program and search for its proof
+get interleaved.  We demonstrated its effectiveness on 
 synthesis of cryptographic schemes.
 
 %\acks
