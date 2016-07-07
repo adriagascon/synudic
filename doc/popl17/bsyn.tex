@@ -3827,10 +3827,10 @@ generating and solving either
 the $\Phi_{\exists\forall}$ formula (in case there are only primals),
 the $\Phi_{\exists\exists}$ formula (in case there are only duals), or the 
 $\Psi_{\exists\forall}$ formula (in case there are both).
-Our synthesizer, along with all the examples 
-presented in the following sections,
+Our tool, along with all the examples 
+%presented in the following sections,
 and corresponding 
-SMT instances, are available at~\texttt{ommited for double-blindness}.
+SMT instances, is available at~\texttt{ommited for double-blindness}.
 Our emphasis in the descriptions below will be on the use of duality.
 
 \begin{figure}
@@ -3882,8 +3882,8 @@ enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 is that we encode all the synthesis problem in a single logical constraint,
 which allows the solver to interleave the search for program ($\exists$)
 with search for its correctness proof ($\exists$).
-% ASHISH: append sth to the sentence....
-Also, we should remark that our formulation of the problem 
+% Also, % we should remark that 
+We note that our formulation of the problem 
 is analogous to the one in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 in the sense that our sketches do not provide 
 additional ``hints'' to the synthesis tool.
@@ -4099,23 +4099,19 @@ is (3) messages from $C$,
 (15) programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
 
 The unsatisfiable instances are obtaines from (1)-(15) by adding the additional
-restriction that $C$ cannot use multiplication. This prevents this
-party from generating appropriately correlated random data,
+restriction that $C$ cannot use multiplication. This prevents $C$ %this
+from generating appropriately correlated random data,
 which results in unsatisfiable sketches.
-
-The experiments were run using Yices as backend solver
-on a 2.30GHz machine with 8Gb of memory.
 
 Although it is difficult to make definitive statements 
 about the behaviour of SMT solvers, the plot in
 Figure~\ref{fig:plot-sec-mult}
 confirms a tendency that we have often observed:
 our approach scales well for satisfiable instances, 
-and hence using general sketches, and hence spanning a large ${\cal F}$,
+and hence using general sketches spanning a large ${\cal F}$
 is fine as long as ${\cal F}$ contains a solution.
 One the other hand, if the synthesis problem 
-is not realizable, proving so for large families of programs does not scale well
-in our experience.
+is not realizable, proving so for large families of programs may not scale well.
 All the sketches used in this section, as well as the 
 corresponding SMT instances are available at
 ~\texttt{ommited for double-blindness}.
@@ -4126,7 +4122,10 @@ corresponding SMT instances are available at
 \centering
 \includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
 \caption{Running times for satisfiable and unsatisfiable variants of 
-the secure multiplication sketch.}
+the secure multiplication sketch.
+The experiments were run using Yices as backend solver
+on a 2.30GHz machine with 8Gb of memory.}
+
 \label{fig:plot-sec-mult}
 \end{figure}
 
@@ -4166,7 +4165,8 @@ protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
 Anonimity protocols such as the Dining Cryptographers' protocol,
 proposed by Chaum~\cite{Chaum88}, are an interesting class of protocols for secure
 multi-party computation.
-The Dining Cryptographers' problem involves 3 cryptographers who decide to
+The % Dining Cryptographers' 
+problem involves 3 cryptographers who decide to
 dine-in together. The restaurant allows for anonymous payment of the bill,
 which could be paid by, either the National Security Agency (NSA),
 or one of the three cryptographers.
@@ -4216,7 +4216,7 @@ In the two party version of oblivious transfer (OT),
 one party, the \sender, has two messages $m_0$ and $m_1$,
 and the other party, the \chooser, can pick which message she wants to receive.
 The goal of oblivious transfer is to achieve this transfer of
-message from \sender\ to the \chooser, but with the additional
+message from \sender\ to the \chooser, but with the % additional
 requirements that
 (a) the \sender\ does not learn the choice made by the \chooser,
 and
@@ -4268,15 +4268,22 @@ elements $a,b,c\in\mathbb{Z}$.
 %% \\
 %% (4) In Block 4, the \chooser\ uses exponentiation on known values to extract key $k_0$ or $k_1$.
 
-We are again able to perform synthesis 
+Due to technical difficulties in formalizing the security requirements,
+we used approximate requirements that eliminated a large number 
+insecure protocols, but not necessarily all of them. %sufficient to 
+Approches based on $\exists\forall$ paradigm failed due to the complexity
+of the protocol.
+However, we were able to perform synthesis 
 by completely eliminating the primal components
 and using only suitably designed % The key novelty in our synthesis approach  is that
 {\em{dual programs}}.
-Thus, we solve the OT synthesis problem by generating 
-an $\Phi_{\exists\exists}$ formula, which is then solved using an
-off-the-shelf SMT solver~\cite{yices,z3}.
+% Thus, we solve the OT synthesis problem by generating 
+% an $\Phi_{\exists\exists}$ formula, which is then solved using an
+% off-the-shelf SMT solver~\cite{yices,z3}.
 %
-The domain $\domd$ of our dual interpretation is just a fixed length
+\ignore{
+The dual domain $\domd$ % of our dual interpretation 
+is just a fixed length
 vector of real numbers. 
 %For simplicity, say these are length $1$ vectors.
 %For random values $r,s,a,b,c\in\mathbb{Z}$, we use fixed prime numbers;
@@ -4287,7 +4294,7 @@ which party has access to $x$ and which party has access to only $g^x$.
 All arithmetic operations on group elements are mapped to arithmetic operations
 on the exponents in the obvious way: for example, $(g^x)^y$ is simply $g^{xy}$,
 and $g^xg^y$ is simply $g^{x+y}$. 
-
+\endignore}
 %We capture the requirements of the OT protocol as follows:
 %(a) we ensure that the \chooser\ can extract message $m_0$, when it has picked $m_0$,
 %by checking that the (dual) value computed on Block 4 is equal to the key $k_0$
@@ -4299,8 +4306,8 @@ and $g^xg^y$ is simply $g^{x+y}$.
 %checking that the \sender\ is unable to generate the values sent by the \chooser.
 %We note that the checks in (b) and~(c) are necessarily incomplete. Nevertheless, they are
 %very effective in pruning out obviously insecure protocols.
-
-Using the above approach, we synthesized two different OT protocols:
+%
+Using the $\exists\exists$ approach, we synthesized two different OT protocols:
 the first protocol we synthesized was also recently reported in~\cite{SimpleOT},
 and the second protocol we synthesized is the Naor-Pinkas oblivious transfer protocol~\cite{Pinkas}.
 The solutions were obtained in about $1$ and $100$ seconds, respectively, 
@@ -4462,9 +4469,9 @@ as well as, type-based pruning~\cite{DBLP:conf/pldi/OseraZ15} of synthesis searc
 Our work builds upon the recent work on synthesis of security schemes
 using program synthesis techniques~\cite{TGD15:CADE}, where security
 requirements are captured using constraints.
-The work described in~\cite{TGD15:CADE} falls in the $\Psi_{\exists\forall}$
-paradigm. Here, we introduce duality and use the resulting 
-$\Phi_{\exists\exists}$ paradigm for synthesis; thus, speeding up synthesis
+The approach in~\cite{TGD15:CADE} falls in the $\Psi_{\exists\forall}$
+paradigm. Here, we introduce duality and the 
+$\Phi_{\exists\exists}$ paradigm for synthesis, which speeds up synthesis
 by atleast an order of magnitude.
 % is focused on the synthesis
 % application, and it does not formally present
@@ -4513,6 +4520,10 @@ Moreover, since computing certain answers is co-NP
 for commonly considered semantics, alternate semantics
 that provide underapproximations have been also proposed~\cite{Libkin15}.
 
+The dual interpretations behave as constraints, and hence
+our combination of primal and dual has flavors of contraint
+programming~\cite{constraintProgramming} and combining
+inductive and co-inductive constructs~\cite{AbelCoPatterns}.
 %Recently, we have implemented an exists-forall solver as part of the
 %SMT-solver Yices~\cite{Dutertre:cav2014,DBLP:conf/fmcad/GasconSDTJM14}. In this paper,
 %we present a language for specifying sketches, which are partially
