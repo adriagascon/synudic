@@ -586,6 +586,7 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
 \section{An Illustrative Example}\label{sec:ex}
 
 \begin{figure*}[tb]
+\centering
   \begin{tabular}{|llll|}
     \hline
     Library: &
@@ -913,8 +914,13 @@ $\genx$,
 $\geny$,
 $\genr$,
 $\gend$,
+$\identity$,
 using a set of proof rules (see Figure~\ref{fig:rules0}).
-
+In Figure~\ref{fig:rules0} we omitted rules
+for $\minus$, which is similar to the one for $\plus$,
+rules for $\genr$, $\gend$, which 
+are analogous to the ones for $\genx$ and $\geny$,
+and a rule $\identity$.
 We can use these proof rules to prove an assertion $v+w=a*b$ 
 at the end of program $P$ as follows:
 start with an identity substitution ($\mathtt{id}$), and update
@@ -923,9 +929,9 @@ in rule {\genx}, after execution
 of $v := \genx$, we get a new substitution that maps $v$ to the symbolic
 polynomial $x$. Similarly, 
 rule {\plus},  handles program lines of the form 
-$v := \plus(x, y)$ setting $\theta(v)$ to the polynomial $(\theta(x) + \theta(y))\in {\cal A}$.
+$v := \plus(x, y)$ by setting $\theta(v)$ to the polynomial $(\theta(x) + \theta(y))\in {\cal A}$.
 Once we have the substitution $\theta$ resulting
-after symbolically executing the whole program, we can check if 
+from symbolically executing the whole program, we can check if 
 $\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ 
 are identical expressions, i.e. correspond to the same element of the abstract domain ${\cal A}$.
 The proof rule for $\timess$ in Figure~\ref{fig:rules0} has a condition
@@ -989,13 +995,19 @@ using the dual interpretation.  This is an $\exists\exists$ problem:
 we are finding a program (first $\exists$) and a proof of its correctness over
 the chosen abstract domain (second $\exists$).
 Duality has enabled us to replace the $\forall$ check by an 
-$\exists$ check.
+$\exists$ check. In Section~\ref{sec:findingduals}
+we present a generic approach for constructing 
+such dual semantics.
 
 We still have not solved our original problem because we still need to
-include the security requirement.  The formal security requirement
-{\em{check: (that is based on showing the existence of a simulator that can generate
-values close to the synthesized protocol using an ideal secure protocol
-as an oracle)}} is difficult to capture precisely. 
+include the security requirement.  The formal security requirement, 
+which is based on showing a simulation of the ideal functionality
+in the actual functionality (see~\cite{sim-tutorial} for details on
+this proof technique)
+%{\em{check: (that is based on showing the existence of a simulator that can generate
+%values close to the synthesized protocol using an ideal secure protocol
+%as an oracle)}} 
+is difficult to capture precisely. 
 We take a very practical approach here:  we replace the security requirement
 by another easily checkable requirement that is sufficient (but not necessary)
 for security.  The new check can itself be described by 
@@ -1050,7 +1062,7 @@ dual interpretation used earlier.
 For (a), we call a value (computed at a line) ``random'' 
 if the symbolic polynomial expression representing the value computed
 at that line contains one of the four random seeds ($x$, $y$, $r$, or $u$).
-For example, $ab$ is not random, but $ax$ is random.
+For example, $ab$ is not random, but $ax$ and $b+ax$ are random.
 Let $\mathtt{rseeds}(v)$ be a bitvector of length $4$ that denotes if
 $x$, $y$, $r$, or $u$ is present in $v$.
 If $\mathtt{rseeds}(v) = \langle b_1,b_2,b_3,b_4\rangle$,
