@@ -3881,8 +3881,8 @@ which
 allows to reduce synthesis to an $\exists\exists$ satisfiability problem ($\Phi_{\exists\exists}$
 from Section~\ref{sec:synthesis}). 
 This alternative approach resulted in a reduction in running time
-from ~100 seconds (using the $\Psi_{\exists\forall}$ approach described above) to
-~1 second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
+from $\sim 100$ seconds (using the $\Psi_{\exists\forall}$ approach described above) to
+$\sim 1$ second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
 Moreover, another benefit of 
 reducing synthesis to an $\exists\exists$ satisfiability problem
 is that we can leverage the incremental solving capabilities
@@ -4016,9 +4016,9 @@ The first $15$ variants of our sketch are satisfiable
 (blue trace in the plot),
 and were obtained in the following way:
 we started from a sketch whose only solution 
-is the solution reported in~Section~\ref{sec:ex},
+is the solution reported in Section~\ref{sec:ex},
 and hence such that $|{\cal F}| = 1$,
-Then, we increasingly relaxed the sketch,
+and increasingly relaxed it
 until we obtained a general one.
 
 Hence, the leftmost data point of the satisfiable instances corresponds to 
@@ -4044,7 +4044,7 @@ is (3) messages from $C$,
 The unsatisfiable instances are obtaines from (1)-(15) by adding the additional
 restriction that $C$ cannot use multiplication. This prevents this
 party from generating appropriately correlated random data,
-which results in unsatisfiable sketches
+which results in unsatisfiable sketches.
 
 The experiments were run using Yices as backend solver
 on a 2.30GHz machine with 8Gb of memory.
@@ -4053,14 +4053,13 @@ Although it is difficult to make definitive statements
 about the behaviour of SMT solvers, the plot in
 Figure~\ref{fig:plot-sec-mult}
 confirms a tendency that we have often observed:
-unsatisfiable instances 
-either are easy to solve or
-take longer to solve than unsatisfiable instances.
-%An intuitive explanation for that fenomenon 
-%is the fact that, while Yices 
-%is good at guiding the search, 
-%it struggles when all the search space has to be explored. 
-All teh sketches used in this section, as well as the 
+Our approach scales well for satisfiable instances, 
+and hence using general sketches, and hence spanning a large ${\cal F}$,
+is fine as long as ${\cal F}$ contains a solution.
+One the other hand, if the synthesis problem 
+is not realizable, proving so for large families of programs does not scale well
+in our experience.
+All the sketches used in this section, as well as the 
 corresponding SMT instances are available at
 ~\texttt{ommited for double-blindness}.
 
