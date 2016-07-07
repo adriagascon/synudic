@@ -3786,7 +3786,7 @@ the $\Phi_{\exists\forall}$ formula (in case there are only primals),
 the $\Phi_{\exists\exists}$ formula (in case there are only duals), or the 
 $\Psi_{\exists\forall}$ formula (in case there are both).
 Our synthesizer, along with all the examples 
-presented in the following Sections,
+presented in the following sections,
 and corresponding 
 SMT instances, are available at~\texttt{ommited for double-blindness}.
 Our emphasis in the descriptions below will be on the use of duality.
@@ -3822,10 +3822,13 @@ section.
 
 The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14} is
 a sound approximation technique for proving security,
-and it can encoded as a dual interpretation.
+and it can be encoded as a dual interpretation.
 A remarkable distinction of our approach, as opposed to the
 enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
-is that we encode all the synthesis problem in a single logical constraint.
+is that we encode all the synthesis problem in a single logical constraint,
+which allows the solver to interleave the search for program ($\exists$)
+with search for its correctness proof ($\exists$).
+% ASHISH: append sth to the sentence....
 Also, we should remark that our formulation of the problem 
 is analogous to the one in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 in the sense that our sketches do not provide 
@@ -4055,12 +4058,12 @@ Figure~\ref{fig:plot-sec-mult}
 confirms a tendency that we have often observed:
 unsatisfiable instances 
 either are easy to solve or
-take longer to solve than unsatisfiable instances.
+take longer to solve than satisfiable instances.
 %An intuitive explanation for that fenomenon 
 %is the fact that, while Yices 
 %is good at guiding the search, 
 %it struggles when all the search space has to be explored. 
-All teh sketches used in this section, as well as the 
+All the sketches used in this section, as well as the 
 corresponding SMT instances are available at
 ~\texttt{ommited for double-blindness}.
 
@@ -4081,7 +4084,7 @@ Similar to the example in Sec.~\ref{sec:ex},
 Alice and Bob wish to carry out secure multiplication of 
 their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}_q$),
 with the help of Carol who distributes random values to both the parties.
-The only difference now is that the functional requirement now specifies
+The only difference is that the functional requirement now specifies
 that the sum of the shares computed by Alice, Bob 
 and Carol equals the product of the initial values 
 that Alice and Bob had access to.
@@ -4107,7 +4110,7 @@ protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
 
 \subsection{Dining Cryptographers}
 
-Anonimity protocols such as the Dining Cryptographers protocol,
+Anonimity protocols such as the Dining Cryptographers' protocol,
 proposed by Chaum~\cite{Chaum88}, are an interesting class of protocols for secure
 multi-party computation.
 The Dining Cryptographers' problem involves 3 cryptographers who decide to
@@ -4121,7 +4124,7 @@ In the first stage, every pair of cryptographers establish
 a shared one-bit secret. 
 In the second stage, each cryptographer announces 
 whether the bits shared with him have
-\begin{itemize}
+\begin{itemize}\itemsep=0em
     \item the same parity, if he did not pay the bill.
     \item different parity, if he paid the bill.
 \end{itemize}
@@ -4181,7 +4184,7 @@ $(g^a,g^b,g^c)$ for randomly and independently chosen elements $a,b,c$ from $\ma
 
 We provide a sketch to the synthesis tool that consists of four blocks of straight-line code.
 It is assumed that the \sender\ has access to random and independently chosen elements 
-$r,s$ from $\mathbb{Z}$, and the \chooser\ has access random and independently chosen
+$r,s$ from $\mathbb{Z}$, and the \chooser\ has access to random and independently chosen
 elements $a,b,c\in\mathbb{Z}$.
 
 %The program sketch says the following:
