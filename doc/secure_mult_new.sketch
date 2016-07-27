@@ -1,0 +1,168 @@
+// type declarations
+
+type index = scalar(x y r a b u xy xr xa xb xu yr ya yb yu ra rb ru ab au bu); //commas?
+type typ = function(index, real);
+type random = bitvector(4);
+
+// procedure declarations
+   
+procedure_sketch P1(x,y) = (pickx | pixky | times(x, y) | minus(x, y))^1; // length could be constant or parameter
+
+Sketch secure_mult(nc, na1, nb1, na2) {  // nc, na1, nb1, na2 are parameters
+
+   // signature is a set of function declarations like 
+   // <function_name>(<arity>, <set of properties>). Default <set of properties> is {count=infinit, is_ac=False}
+   
+   signature =  { identity(1), times(2, {count=1, is_ac=true}), minus(2), plus(2, {is_ac=true}), pickx(0), picky(0), pickr(0), input1(0), input2(0), picku(0)};
+    
+   blocks = [
+		B1 = P1(B1, B1)^nc // block declaration by means of a procedure sketch (defined in the context)
+		B2 = (pickx | pixky | times(B1 | B2, B2) | minus(B1 | B2, B1))^1 // Block declaration defined directly
+		B3 = P1(B2, B1)^nc // procedure sketches can be reused
+		.	
+		.
+
+   	    ]
+
+   // Dual interpretation declaration
+
+   typ_intr = Dual(typ){
+       // all this are functions that return a constraint (a bool), since the interpretation is dual,
+       // and parameters are always of type typ (in fact typ will always be an assignment)
+       pickx = 	function(typ t) {
+	     c = lambda(z): (t(z) == 1 iff z == x);
+       	     return all([c(z) for z in dom(typ)]); // or return and(map(lambda z: t(z) == 1 iff z == x,  dom(typ)));
+       };
+
+       picky = 	function(typ t) {
+	     c = lambda(z): (t(z) == 1 iff z == y);
+       	     return all([c(z) for z in dom(typ)]);
+       };
+
+       pickr = 	function(typ t) {
+	     c = lambda(z): (t(z) == 1 iff z == r);
+       	     return all([c(z) for z in dom(typ)]);
+       };
+       
+       picku = 	function(typ t) {
+	     c = lambda(z): (t(z) == 1 iff z == u);
+       	     return all([c(z) for z in dom(typ)]);
+       };
+
+       identity = function(typ t1, typ t2){
+		return t1 = t2; // all([t1(z) = t2(z) for z in dom(typ)]) or all([t1(z) = t2(z) for z in index])
+       };
+
+       plus = function(typ t1, typ t2, typ t3){
+		c1 = lambda(z): z == 0 or z == 1 or z = -1
+		c2 = lambda(z1, z2, z3): z3 = z1 + z2
+		return all([c1(z) for z in dom(typ)]) and all([c2(t1(z), t2(z), t3(z)) for z in dom(typ)]);
+       };
+
+       minus = function(typ t1, typ t2, typ t3){
+		c1 = lambda(z): z == 0 or z == 1 or z = -1
+		c2 = lambda(z1, z2, z3): z3 = z1 - z2
+		return all([c1(z) for z in dom(typ)]) and all([c2(t1(z), t2(z), t3(z)) for z in dom(typ)]);
+       };
+
+       is_linear = function(typ t){
+       		return all([t(z) for z in [xy xr xa xb xu yr ya yb yu ra rb ru ab au bu]]); // Do we want to write index(xy) instead of simply xy?
+       };
+
+       no_shared_term = function(typ t1, typ t2){
+       		return all([t1(z) or t2(z) for z in x y r a b u]);
+       };
+
+       my_prod = function(real r1, real r2, real r3){
+       	       return (y if x == 1 else (0 is x == 0 else 0 - y));
+       };
+
+
+       times = function(typ t1, typ t2, typ t3){
+       	       return is_linear(t1) and is_linear(t2) and no_shared_term(t1, t2) and \
+	       	      all([t3(z) for z in x y r a b u]) and \
+		      t3(xy) == my_prod(t1(x), t2(y)) +  my_prod(t1(y), t2(x)) and \
+		      t3(xr) == my_prod(t1(x), t2(r)) +  my_prod(t1(r), t2(x)) and \
+		      t3(xa) == my_prod(t1(x), t2(a)) +  my_prod(t1(a), t2(x)) and \
+		      t3(xy) == my_prod(t1(x), t2(y)) +  my_prod(t1(y), t2(x)) and \
+		      .
+		      .
+		      .
+     		      t3(bu) == my_prod(t1(b), t2(u)) +  my_prod(t1(u), t2(b));
+       };
+
+       is_ab = function(index i){
+       	       return (1 if i == ab else 0);
+       };
+
+       ensure =  typ_intr.plus(get_val(typ_intr, LA2, na2), get_val(typ_intr, LB2, na2), is_ab);
+   }
+
+   // Another dual interpretation declararion
+   random_intr = Dual(random){
+       pickx = function(random t) {
+       	     return t == 0b1000;
+       };
+
+       picky = function(typ t) {
+             return t == 0b0100;
+       };
+
+       pickr = function(typ t) {
+             return t == 0b0010;
+       };
+
+       pickr = function(typ t) {
+             return t == 0b0001;
+       };
+       
+       identity = function(random t1, random t2){
+		return t1 = t2; // all([bit(t1, z) = bit(t2, z) for z in len(t1)])
+       };
+
+       plus = function(random t1, random t2, random t3){
+		return t3 = t1 ^ t2;
+       };
+
+       minus = function(random t1, random t2, random t3){
+		return t3 = t1 ^ t2;
+       };
+
+       times = function(random t1, random t2, random t3){
+		return t3 = t1 | t2;
+       };
+       
+       is_random = function(random x){
+       		return any([bit(x, i) for i in range(len(x))]);
+       };
+
+       no_knowledge = function(random t1, random t2, random t3, random t4){
+       		return not (t1 ^ t2 ^ t3 ^ t4 == 0b0000) and \
+		       not (t1 ^ t2 ^ t4 == 0b0000) and \
+		       not (t1 ^ t3 ^ t4 == 0b0000) and \
+		       not (t2 ^ t3 ^ t4 == 0b0000) and \
+		       not (t1 ^ t4 == 0b0000) and \
+		       not (t1 ^ t3 == 0b0000) and \
+		       not (t2 ^ t4 == 0b0000) and \
+		       not (t2 ^ t3 == 0b0000);
+       };
+
+       ensure = is_random(get_value(random_intr, LCA, 1)) and is_random(get_value(random_intr, LCA, 2)) and \
+        	is_random(get_value(random_intr, LAB, 1)) and is_random(get_value(random_intr, LCB, 1)) and \
+       		.
+		.
+		.
+		is_random(get_value(random_intr, LAB2, 1)) and \
+		no_knowledge(
+			get_value(random_intr, LCA, 1),
+			get_value(random_intr, LCA, 2),
+			get_value(random_intr, LBA, 1),
+			get_value(random_intr, LBA, 2)) and \
+		no_knowledge(
+			get_value(random_intr, LCB, 1),
+			get_value(random_intr, LCB, 2),
+			get_value(random_intr, LAB, 1),
+			get_value(random_intr, LAB, 2));
+   }   
+}
+             
