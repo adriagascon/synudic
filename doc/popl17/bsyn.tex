@@ -131,16 +131,16 @@
 %\preprintfooter{}   % 'preprint' option specified.
 
 %\title{Bounded Program Synthesis}
-\title{Search for Proof to Search for Programs: Duality for Bounded Program Synthesis}
+\title{Search for Proof to Find the Program: Duality for Bounded Program Synthesis}
 
 \numberofauthors{1}
-\author{
-\alignauthor
-Firstname Lastname\\
-\affaddr{Affiliation1}\\
-\affaddr{Affiliation2}\\
-\email{email@address}
-}
+%\author{
+%\alignauthor
+%Firstname Lastname\\
+%\affaddr{Affiliation1}\\
+%\affaddr{Affiliation2}\\
+%\email{email@address}
+%}
 %\author{Adri{\`a} Gasc{\'o}n} \and Ashish Tiwari \and Brent Carmer \and Umang Mathur}
 %\authorrunning{A. Tiwari \and B. Carmer \and A. Gascon}
 %\institute{ SRI International, Menlo Park, CA 94025 } 
@@ -396,9 +396,10 @@ Our contributions are as follows:
     We identify a {\em{weak duality}} principle, which
     enables replacement of a forall check
     (program is correct for all inputs)
-    by an exists check (there exists a proof),
-    and thus allows us to perform
-    synthesis by solving an exists-exists constraint.
+    by an exists check (there exists a proof).
+    Duality allows us to perform
+    synthesis by solving an exists-exists constraint, which is
+    significantly faster to solve than an exists-forall constraint.
   \item We show that standard abstraction techniques provide one
     way of generating proof systems on which bounded proof
     search can be performed. Bounded proof search is performed by 
@@ -586,6 +587,7 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
 \section{An Illustrative Example}\label{sec:ex}
 
 \begin{figure*}[tb]
+\centering
   \begin{tabular}{|llll|}
     \hline
     Library: &
@@ -637,22 +639,21 @@ $p\in\Sig$ is a predicate symbol.}\label{fig:language}
         $6$ functions with arity $0$,  $1$ with arity $1$, and 
         $3$ with arity $2$.
         The sketch has $11$ straight-line program blocks:
-        Alice executes code in blocks $\mathtt{A1,A2,A3}$,
-        Bob executes code in blocks $\mathtt{B1,B2,B3}$, and
+        Alice executes blocks $\mathtt{A1,A2,A3}$,
+        Bob executes blocks $\mathtt{B1,B2,B3}$, and
         Carol executes block $\mathtt{C}$. 
         Blocks $\mathtt{CA,CB}$ represent values sent by Carol to
-        respectively Alice and to Bob; the same convention is used in 
-        naming of blocks $\mathtt{AB,BA}$.
-        The syntax $\mathtt{plus((CA,A1),(CA,A1))}$ in the
-        description of block $\mathtt{A2}$ indicates that Alice
+        Alice and Bob respectively; the same convention is used in 
+        naming blocks $\mathtt{AB,BA}$.
+        The syntax $\mathtt{plus((CA,A1),(CA,A1))}$ in 
+        block $\mathtt{A2}$ indicates that Alice
         can apply $\mathtt{plus}$ on two arguments: the first argument
-        has to a value computed in block $\mathtt{CA}$ or in block 
+        is a value computed in block $\mathtt{CA}$ or 
         $\mathtt{A1}$, and the same for the second argument.
-        The other choices available for Alice in $\mathtt{A1}$ are
-      using the $\mathtt{minus}$ or $\mathtt{times}$ component with
-      the same choices for their argument.
-      Note that the syntax for writing the sketch allows a user to 
-      remove choices: for example, in Block $\mathtt{A3}$, the option
+        The other components available for Alice in $\mathtt{A2}$ are
+      $\mathtt{minus}$ and $\mathtt{times}$ with the same choices for their argument.
+      %Note that the syntax for writing the sketch allows 
+      Choices can be removed: in Block $\mathtt{A3}$, the option
       of using values computed in blocks $\mathtt{A1,A2}$ have been removed
       (for illustration).
   }}}\label{fig:ex0}
@@ -670,8 +671,9 @@ solutions to privacy preserving computation~\cite{DBLP:conf/esorics/BogdanovLW08
 Our problem is as follows: find a protocol for Alice and Bob 
 to compute an additive share of the
 product of Alice's and Bob's private input values.
-Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}$,
-and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}$.
+Let Alice's (private input) value be $\mathtt{input}(A)\in\mathbb{Z}_q$,
+and Bob's value be $\mathtt{input}(B)\in\mathbb{Z}_q$, for some 
+natural $q$, say $32$.
 For {\em correctness}, 
 our functional requirement is that
 $$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B).$$
@@ -733,7 +735,7 @@ We first identify the components that we could use in the protocol.
 These are the three arithmetic operations 
 $\mathtt{plus}$, 
 $\mathtt{minus}$, and $\mathtt{times}$, along with
-a few random number generators, say 
+a few calls to a  pseudo-random generator, say 
 $\genx$,
 $\geny$,
 $\genr$, and
@@ -832,10 +834,10 @@ is similar to the component-based synthesis problem~\cite{bitvector}.
 %
 %Once we have the library of ten components, and the structure of the protocol
 %above, we have what can be called a ``sketch'' of the protocol.  
-Now, we need
-to specify the requirements -- the functional correctness requirement
+%Now, we need
+%to specify the requirements -- the functional correctness requirement
 %$$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B),$$
-and the security requirement.
+%and the security requirement.
 
 Let us first focus on the correctness requirement. If we give each of the $10$
 components its natural interpretation (that is, all variables are 
@@ -843,19 +845,29 @@ integer valued, $\mathtt{plus}$ is arithmetic addition, and so on),
 then the correctness requirement is simply the arithmetic equality
 $$\mathtt{output}(A) + \mathtt{output}(B) = \mathtt{input}(A)*\mathtt{input}(B).$$
 Now, synthesis can be performed as in~\cite{bitvector} -- the synthesis problem
-is reduced to an $\exists\forall$ formula over the theory of arithmetic,
+is reduced to an $\exists\forall$ formula over a suitable theory,
 where $\exists$ quantifier searches over the space of possible programs,
 and the $\forall$ quantifier checks correctness over the space of all possible
-inputs.  However, this approach does not work here because
-of two issues: first, 
-we have not captured the security requirement, and second,
-we have to solve an $\exists\forall$ problem over 
-the (undecidable) theory of nonlinear integer arithmetic.
-Our new technique, bounded program synthesis, overcomes both these
-issues using one key idea: giving components a second, called {\em{dual}},
+inputs. Note that, intuitively, this corresponds to 
+generating candidate programs, and checking a {\em validity} property on
+each of them. If the validity check passes, then the candidate is actually a solution.
+However, we do not know how to encode the security requirement as a validity check.
+%Also, note that how to encode our security requirement in this formulation is not obvious.
+
+%However, this approach does not work here because
+%of two issues: first, 
+%we have not captured the security requirement, and second,
+%we have to solve an $\exists\forall$ problem over 
+%the (undecidable) theory of nonlinear integer arithmetic.
+Our new technique, bounded program synthesis, 
+allows us to (a) turn the validity check above into a satisfiability
+check over an alternative theory, resulting in a more efficient synthesis algorithm,
+and (b) provide a natural way of specifying a nonfunctional security 
+requirement. The key idea behind bounded program synthesis is
+giving components a second, called {\em{dual}},
 interpretation (as opposed to giving it the natural, or {\em{primal}}, interpretation).
 
-\newcommand{\ttrule}[4]{{{#1}}: & \begin{array}{c}{#2}\\ \hline {#3}\end{array} &  {{#4}}}
+\newcommand{\ttrule}[4]{{{#1}} & \begin{array}{c}{#2}\\ \hline {#3}\end{array} &  {{#4}}}
 \newcommand{\hoare}[3]{{\{{#1}\}\; {#2}\; \{{#3}\}}}
 
 \begin{figure*}
@@ -880,29 +892,63 @@ interpretation (as opposed to giving it the natural, or {\em{primal}}, interpret
         {\hoare{\mathtt{id}}{P}{\mathtt{assert(v+w=a*b)}}}%
         {v_{ab}+w_{ab}=1\;\wedge\; \bigwedge_{i\neq ab} v_i+w_i=0}%
       \end{eqnarray*}
-      \caption{Proof rules and generated constraints for the secure multiplication example: The first two columns show named proof rules for proving an example assertion for a program in the class of programs considered in Section~\ref{sec:ex}.  Essentially, the rules perform symbolic execution of the program.  The third column shows (some of the) constraints that are generated on the dual variables. Some of the restrictions on the proof rules that are considered for performing bounded proof search are shown inside square brackets; for e.g., we use $\timess$ only on linear arguments because we want all generated symbolic expressions to be at most quadratic. The constraints are over dual variables: $v_i$ denotes the value of the coefficient of the $i$-th monomial in the symbolic value of $v$. The index $i$ ranges over $I=L\cup NL$, where $L = \{x,y,r,u,a,b\}$ and $NL$ consists of all quadratic monomials over $L$.}
+      \caption{Selected proof rules and generated constraints for the secure multiplication example: The first two columns show named proof rules for proving an example assertion for a program in the class of programs considered in Section~\ref{sec:ex}.  Essentially, the rules perform symbolic execution of the program.  The third column shows (some of the) constraints that are generated on the dual variables. Some of the restrictions on the proof rules that are considered for performing bounded proof search are shown inside square brackets; for e.g., we use $\timess$ only on linear arguments because we want all generated symbolic expressions to be at most quadratic. The constraints are over dual variables: $v_i$ denotes the value of the coefficient of the $i$-th monomial in the symbolic value of $v$. The index $i$ ranges over $I=L\cup NL$, where $L = \{x,y,r,u,a,b\}$ and $NL$ consists of all quadratic monomials over $L$.}
   \label{fig:rules0}
 \end{figure*}
 
-Consider an abstract domain that consists of symbolic polynomial expressions
+As a first step in defining the dual semantics for this problem,
+consider an abstract domain that consists of symbolic polynomial expressions
 of degree at most $2$ over the six variables: the two inputs $a,b$ and the
 four random numbers $x,y,r,u$.
+$${\cal A} = \{p(a, b, x, y, r, u)~|~p\mbox{ is quadratic}\}$$
+where polynomials in ${\cal A}$ are represented in 
+{\em{canonical form}} as a sum of ordered monomials. %lists of reduced monomials.
+
 Let us say we wish our program (that is yet to be discovered)
 to have a proof in this abstract domain.  
 We can design proof rules that essentially perform
-symbolic execution to check an assertion 
-(see Figure~\ref{fig:rules0}).
-We can use these proof rules to prove an assertion $v+w=a*b$ 
-at the end of program $P$ as follows:
-start with an identity substitution ($\mathtt{id}$), and update
-it by symbolically executing the code. For example, after execution
+symbolic execution to check an assertion.
+Let $\theta: \V\mapsto {\cal A}$ map a variable $v\in \V$
+to the symbolic polynomial value of $v$. %computed at $l$.
+% To do so, we assign an abstract value $\theta(v)$
+% to every line of the form $v:=op(\_)$
+% of our target program, where 
+% $op\in \mathtt{plus}, \mathtt{minus}, \mathtt{times}$
+% $\genx$,
+% $\geny$,
+% $\genr$,
+% $\gend$,
+% $\identity$,
+% using a set of proof rules (see Figure~\ref{fig:rules0}).
+We can compute $\theta$ by 
+starting with an identity substitution ($\mathtt{id}$), and updating
+it using the rules in Figure~\ref{fig:rules0}.
+% by symbolically executing the code. For example, 
+For example, 
+in rule {\genx}, after execution
 of $v := \genx$, we get a new substitution that maps $v$ to the symbolic
-polynomial $x$.  Once we have the substitution $\theta$ resulting
-after symbolically executing the whole program, we can check if 
-$\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ are identical expressions.
+polynomial $x$. Similarly, 
+rule {\plus}  handles program lines of the form 
+$v := \plus(x, y)$ by setting $\theta(v)$ to the polynomial 
+$(\theta(x) + \theta(y))\in {\cal A}$.
+In Figure~\ref{fig:rules0} we omitted rules
+for $\minus$, which is similar to the one for $\plus$,
+rules for $\genr$, $\gend$, which 
+are analogous to the ones for $\genx$ and $\geny$,
+and a rule $\identity$.
+Once we have computed the $\theta$ (for all variables),
+we can use the rule $\mathtt{check}$ 
+to prove an assertion $v+w=a*b$ at the end of program $P$ 
+by checking if
+$\theta(v)+\theta(w)$ and $\theta(a)*\theta(b)$ 
+are syntactically equal (recall elements of ${\cal A}$ are represented
+in canonical form).
 The proof rule for $\timess$ in Figure~\ref{fig:rules0} has a condition
 that allows multiplication to be used only on linear polynomials (so that
 the result is atmost quadratic).
+Note that, what we have done using this proof system to
+check correctness is to turn our validity property over 
+integers into an evaluation over ${\cal A}$.
 
 Rather than searching for the correct program, let us say we want to
 search for the proof in the proof system shown in Figure~\ref{fig:rules0}.  
@@ -911,14 +957,15 @@ elements in the chosen abstract domain are parameterized
 by $27$ parameters -- namely, the coefficients of all degree $1$ and degree $2$
 monomials over the six variables ($C(6,1) + C(6,2) + C(6,1) = 6 + 15 + 6 = 27$).
 Finding the proof is the same as finding the $27$ parameters for each program
-line.
+variable.
 Let $L = \{x,y,r,u,a,b\}$ and $NL = \{ij \mid i\neq j, i\in L, j\in L\}\cup \{ii \mid i\in L\}$.
 If $v$ is a program variable, then it is associated with
 $27$ dual  variables, namely, $v_i$, where index $i$ ranges over the set
 $I = L\cup NL$ of all indices. If variable $v$ gets a symbolic value
 $p$ and $p$ is quadratic, then
 the dual variables $v_i$'s get the value of the coefficient of the
-monomial $i$ in $p$.
+monomial $i$ in $p$. % which given the rules in Figure~\ref{fig:rules0},
+%will be a value in $\{-1, 0, 1\}$  
 Now, let us say we could prove our functional requirement using quadratic
 symbolic values.  Then, there exists a value of the dual variables that
 witnesses this proof.  The converse is even more important: if
@@ -957,13 +1004,19 @@ using the dual interpretation.  This is an $\exists\exists$ problem:
 we are finding a program (first $\exists$) and a proof of its correctness over
 the chosen abstract domain (second $\exists$).
 Duality has enabled us to replace the $\forall$ check by an 
-$\exists$ check.
+$\exists$ check. In Section~\ref{sec:findingduals}
+we present a generic approach for constructing 
+such dual semantics.
 
 We still have not solved our original problem because we still need to
-include the security requirement.  The formal security requirement
-{\em{check: (that is based on showing the existence of a simulator that can generate
-values close to the synthesized protocol using an ideal secure protocol
-as an oracle)}} is difficult to capture precisely. 
+include the security requirement.  The formal security requirement, 
+which is based on showing a simulation of the ideal functionality
+in the actual functionality (see~\cite{sim-tutorial} for details on
+this proof technique)
+%{\em{check: (that is based on showing the existence of a simulator that can generate
+%values close to the synthesized protocol using an ideal secure protocol
+%as an oracle)}} 
+is difficult to capture precisely. 
 We take a very practical approach here:  we replace the security requirement
 by another easily checkable requirement that is sufficient (but not necessary)
 for security.  The new check can itself be described by 
@@ -980,21 +1033,23 @@ likely secure, but security needs to be re-evaluated in a post processing step.
 \begin{figure*}
   \begin{tabular}{|l|l|}
     \hline
-    security requirement (a) & 
+    security &
     $\mathtt{isrand(val@(CA,1))} \wedge
      \mathtt{isrand(val@(CA,2))} \wedge
      \mathtt{isrand(val@(CB,1))} \wedge
      \mathtt{isrand(val@(CB,2))} \wedge$
-     \\ &
+     \\ 
+    requirement (a) & 
      $\mathtt{isrand(val@(AB,1))} \wedge
      \mathtt{isrand(val@(BA,1))} \wedge
      \mathtt{isrand(val@(BA,2))}
     $
-    \\
-    security requirement (b) &
+    \\ \hline
+    security &
     $\bigwedge_{S_1\subseteq S}  \bigoplus_{v\in S_1} \mathtt{rseeds}(v) \neq \langle 0,0,0,0\rangle$ {\mbox{ where }} 
     $S = \{\mathtt{ val@(CA,1), val@(CA,2), val@(BA,1), val@(BA,2)} \}$
-    \\ &
+    \\ 
+    requirement (b) &
     $\bigwedge_{S_1\subseteq S}  \bigoplus_{v\in S_1} \mathtt{rseeds}(v) \neq \langle 0,0,0,0\rangle$ {\mbox{ where }} 
     $S = \{\mathtt{ val@(CB,1), val@(CB,2), val@(AB,1)} \}$
     \\ \hline
@@ -1004,7 +1059,9 @@ values computed at the various program points. The function
 $\mathtt{isrand}$ checks if the value (computed at the given program
 point) is ``random'' and 
 $\mathtt{rseeds}$ returns the randomly-picked numbers that are used
-to compute the value (computed at that program point, in 1-hot encoding).}
+to compute the value (computed at that program point, in 1-hot encoding).
+$\mathtt{val@(CA,2)}$ denotes the value computed on line $2$ of block $\mathtt{CA}$
+(see Fig.~\ref{fig:ex0},~\ref{fig:ans0})}
 \label{fig:secure0}
 \end{figure*}
 
@@ -1018,7 +1075,8 @@ dual interpretation used earlier.
 For (a), we call a value (computed at a line) ``random'' 
 if the symbolic polynomial expression representing the value computed
 at that line contains one of the four random seeds ($x$, $y$, $r$, or $u$).
-For example, $ab$ is not random, but $ax$ is random.
+For example, $ab$ and $b+r-r$ (whose canonical form representation is $b$)
+are not random, but $ax$ and $b+ax$ are random.
 Let $\mathtt{rseeds}(v)$ be a bitvector of length $4$ that denotes if
 $x$, $y$, $r$, or $u$ is present in $v$.
 If $\mathtt{rseeds}(v) = \langle b_1,b_2,b_3,b_4\rangle$,
@@ -1056,7 +1114,7 @@ if $v_1 = bx$ and $v_2 = bx$, then
 $$
 \mathtt{rseeds}(bx) \oplus \mathtt{rseeds}(bx) = \langle 0,0,0,0\rangle.
 $$
-However, in this case, Alice can not learn $b$ from $bx$ (unless 
+However, Alice can not learn $b$ from $bx$ (unless 
 it also knows the random number $x$), while our check concludes otherwise.
 
 
@@ -1097,11 +1155,12 @@ it also knows the random number $x$), while our check concludes otherwise.
     same program whose English description is provided in the text. It is 
   discovered by our synthesis tool using the inputs shown in 
 Figure~\ref{fig:ex0}, Figure~\ref{fig:rules0}, and Figure~\ref{fig:secure0}.}
+\label{fig:ans0}
 \end{figure}
 
 With this encoding of the security requirement, our sketch is complete,
 we run our synthesis tool, and it returns the following protocol:
-\begin{enumerate}
+\begin{enumerate}\itemsep=0em
   \item
     $C$ generates random numbers $x,y,r$, and computes $xy$ and $r-xy$
   \item
@@ -1118,7 +1177,8 @@ Note that the protocol did not use the fourth random number ($u$), whereas
 we were expecting the synthesized protocol to need it.
 
 
-\section{A Simple Programming Language Abstraction}
+\section{An Abstract Programming Language}
+%\section{An Abstract Language}
 \label{sec:language}
 
 We formalize a simple programming model in this section that
@@ -1381,6 +1441,7 @@ after ``executing'' the program statement $s$.
 
 \endignore}
 
+%\subsection{Primal and Dual Program Semantics}
 \subsection{Primal and Dual Program Semantics}
 
 Given a program $P$ as defined above, we can now define
@@ -1643,12 +1704,13 @@ the program $P$.
 % $\semt_\vmap$ notation to make the dual semantic transformer
 % function appear as the primal transformer $\sem$.
 
-For a program that has both a primal and a dual component, we can now define its
-combined semantics by defining its state space as the Cartesian product of the primal
+For a program that has both a primal and a dual component, we can define its
+semantics by defining its state space as the Cartesian product of the primal
 and dual state spaces, and doing the same for the primal and dual semantics.
 
 
-\section{Primal and Dual Assertion Checking}
+%\section{Primal and Dual Assertion Checking}
+\section{Primal-Dual Assertion Checking}
 \label{sec:assertionchecking}
 
 We defined the primal and dual semantics of programs as
@@ -1708,12 +1770,12 @@ and dual assertion checking problems.
     \hline
     Program & Dual 1 & Dual 2 & Dual 3
     \\ \hline \hline
-    $l_0:\; \mathtt{input}\; x; $ & $\neg l_0$ & $l_0=\float$ & $l_0 \geq 0$ \\
+    $l_0:\; \mathtt{input}\; x_0; $ & $\neg l_0$ & $l_0=\float$ & $l_0 \geq 0$ \\
             $l_1:\; y := 0.0 ;$ & $\true$ %Adria: Shouldn't this be $l_1$
             & $\true$ %Adria: Shouldn't this be $l_1=\zero$
             & $l_1 \geq 0$ \\
             % $l_2:\; z := y*x ;$ & $l_2\Leftarrow l_0\wedge l_1$ & $\substack{l_2\neq\zero\Leftarrow (l_0\neq\zero\vee l_1\neq\zero)\wedge \\ l_2=\float\Leftarrow (l_0=\float\vee l_2=\float)}$ & $l_2\geq l_0+l_1+1$\\
-            $l_2:\; z := y*x ;$ & $l_2\Rightarrow l_0\wedge l_1$ & ${l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)\wedge}$ & $l_2\geq l_0+l_1+1$\\
+            $l_2:\; z := y*x_0 ;$ & $l_2\Rightarrow l_0\wedge l_1$ & ${l_2=\zero\Rightarrow (l_0=\zero\vee l_1=\zero)\wedge}$ & $l_2\geq l_0+l_1+1$\\
                                   & & $l_2=\int\Rightarrow (l_0\neq\float\wedge l_1\neq\float)$ & \\[0.4ex]
            $l_3:\; x := 1 + z;$ & $l_3\Rightarrow l_2$ & ${l_3\neq\zero \wedge (l_3=\int \Rightarrow l_2\neq\float)}$ & $l_3 \geq l_2$
     \\ \hline
@@ -1728,13 +1790,14 @@ and dual assertion checking problems.
   }}}\label{fig:ex1}
 \end{figure*}
 
-\subsection{A Simple Straight-Line Program Example}
+%\subsection{A Simple Straight-Line Program Example}
+\subsection{A Straight-Line Program Example}
 
-Consider the simple four line program in
-Figure~\ref{fig:ex1} (column 1) and let us refer to it as $P$.
+Consider the simple four line program, call it $P$, in
+Figure~\ref{fig:ex1} (column 1). % and let us refer to it as $P$.
 If we take the natural interpretation of the arithmetic
 symbols over the (primal) domain consisting of all numbers
-($\domp$ = set of all numbers), then we naturally obtain the
+($\domp$ = set of all numbers), then we obtain the
 meaning of $P$ as a transformer that
 maps any initial state 
 $(x,y,z)$ to a final state
@@ -1759,14 +1822,15 @@ $x=1$ holds at the end of the program (because it holds for
 We now define three different dual components that can be combined
 with this primal program.
 In all the three cases, $l_0,l_1,l_2,l_3$ are the four dual program variables.
-The first dual program is shown in Column titled ``Dual 1'' in 
-Figure~\ref{fig:ex1}.
-The dual domain, $\domd$, is $\{\true,\false\}$, and the four
+In the first dual program, shown in Column titled ``Dual 1'' in 
+Figure~\ref{fig:ex1},
+the dual domain, $\domd$, is $\{\true,\false\}$, and the four
 program statements are associated with four different constraints
 (on the dual variables).
-Note that we have not yet defined what is a ``correct'' dual component
-for a given primal program.  Informally, however, the
-dual variables in the ``Dual 1'' program have a meaning:
+%Note that we have not yet defined what is a ``correct'' dual component
+%for a given primal program.  Informally, however, the
+Dual semantics need not be related to the primal semantics; however,
+the ``Dual 1'' program is related to the primal:
 if the dual variable $l_i$
 is assigned $\true$, then the value computed on line $l_i$ in the primal
 is definitely a ``constant'' value, whereas if it is $\false$,
@@ -1838,10 +1902,12 @@ we maintained the following intuition:
 if a dual variable has value $\zero$,
 then it means that the primal value computed at the corresponding program location is $0$;
 if it has value $\int$,
-then it means that the primal value computed at the corresponding program location is
+then % it means that 
+the primal value computed at the corresponding program location is
 an integer; and
 if it has value $\float$,
-then we have the least information about the primal value computed at the corresponding program location.
+then % we have the least information about 
+the primal value is just some number. %computed at the corresponding program location.
 Having the value $\zero$ in $\domd$ allows us to generate constraints (in the dual program) about preservation of
 that information; for example, see the constraint in Row $l_2$.
 One possible assignment that is consistent with the constraints in Column ``Dual 2''
@@ -1849,7 +1915,7 @@ is $\langle l_0 \mapsto \float, l_1 \mapsto \zero, l_2\mapsto \zero, l_3\mapsto 
 Hence, the assertion $l_3\approx\int$ holds in the second dual semantics.
 
 \begin{remark}
-  The first two dual programs are shown to demonstrate that dual programs
+  The first two dual programs demonstrate that dual programs
   can be used to encode some standard program analysis. 
   In these cases, the dual meaning
   is an ``abstraction'' of the concrete primal semantics 
@@ -2207,9 +2273,10 @@ using dual to analyze the primal is an example of duality
 %
 
 A {\em{concretization function}} $\gamma$ is a mapping from 
-the set $\psd$ dual program states to the powerset $2^\psp$ of
+the set $\psd$ of dual program states to the powerset $2^\psp$ of
 primal program states; that is,
-$$ \gamma: \psd \rightarrow 2^{\psp} $$
+$\gamma: \psd \rightarrow 2^{\psp}$.
+%$$ \gamma: \psd \rightarrow 2^{\psp} $$
 
 \begin{definition}\label{def:abs0}
 A set $Sd$ of dual states is an {\em{abstraction}} of 
@@ -2333,7 +2400,7 @@ said to abstract a set of primal program states (Definition~\ref{def:abs0}).
   We can see that $\semd$ is an abstraction of $\semp$ by noting that
   it is so for each line of the program.
   Consider the program $P$ consisting of the single line $l_1: y := 0.0$. 
-  Here the set of primal input variables is $V_0=\{x_0\}$ and 
+  For $P$, the set of primal input variables is $V_0=\{x_0\}$ and 
   defined variables is $V_1=\{y\}$.
   The set $Sd_0 = \{\theta\mid \theta(x_0)=\float\}$ is an 
   abstraction of, say, 
@@ -2560,10 +2627,13 @@ $$
 $$
 If we can find such a $\psi_P$ (that is not equivalent to $\mathit{false}$),
 then this constraint will form the dual meaning of $P$.
+The dual domain $\domd$, dual variables $\vec{u}_{li}$'s, and 
+the dual semantics $\psi_P$ together define 
+a dual that is an abstraction of the primal.
 
 We would like to emphasize two points here. 
 First,
-the task of constructing a dual interpreation that
+the task of constructing a dual interpretation that
 is an abstraction of the primal will not succeed always, because we may
 not find such $\psi_P$.
 % (otherwise, for example, we would have NP=co-NP). 
@@ -2635,22 +2705,24 @@ program synthesis.
 %% using the duality principle (to create sound, but incomplete,
 %% verification techniques).
 %Our main interest is in the program synthesis problem.
-Before undertaking a formal presentation, let us provide the
-high-level idea behind the duality approach for program synthesis.
-In synthesis, the goal is to synthesize a program that satisfies
-some desired specification. Rather than synthesizing a program from an abstract specification,
-it is more practical to undertake a {\em template-based\/} synthesis
-approach~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13,Solar05,Solar06,bitvector}.
-Here, the goal is to find the correct program from a large, but given,
-space of possible programs.
-Just as the verification problem can be viewed as a
+%Before undertaking a formal presentation, let us provide the
+%high-level idea behind the duality approach for program synthesis.
+%In synthesis, the goal is to synthesize a program that satisfies
+%some desired specification. Rather than synthesizing a program from an abstract specification,
+%it is more practical to undertake a {\em template-based\/} synthesis
+%approach~\cite{DBLP:conf/fmcad/AlurBJMRSSSTU13,Solar05,Solar06,bitvector}.
+%Here, the goal is to find the correct program from a large, but given,
+%space of possible programs.
+Intuitively,
+just as the verification problem can be viewed as a
 ``forall'' problem, the synthesis problem can be viewed as an
 ``exists-forall'' problem: there {\em{exists}} a program that works
 {\em{for all}} inputs.
 If, using duality, we are able to replace the ``for all'' verification
 problem by an ``exists'' constraint, the synthesis problem reduces
 from $\exists\forall$ to an $\exists\exists$ problem.
-The latter can be solved using existing Satisfiability Modulo Theory (SMT)
+The latter can be solved, much more efficiently, 
+using existing Satisfiability Modulo Theory (SMT)
 solvers~\cite{yices,z3}.
 
 \subsection{Straight-line Program Synthesis as $\exists\forall$}
@@ -2832,7 +2904,8 @@ side.
 
 \subsection{Synthesis Using Primal and Dual}
 
-As we have mentioned before, dual programs need not always be
+%As we have mentioned before, 
+Dual programs need not always be
 abstractions of the primal. They can be independent, and unrelated
 to the primal. In this case, they can be used to specify
 {\em{nonfunctional}} properties of programs.
@@ -2863,9 +2936,10 @@ the following exists-forall formula $\Psi_{\exists\forall}$:
 where $vx_9 = f_\spec(vx_0)$ captures the primal requirement and
 $\phi_4(tx_0,\ldots,tx_9)$ captures the dual requirement.
 
-There is no reason why there should be just one primal
-component and at most one dual component assigned
-to a program. In fact, it is possible
+%There is no reason why there should be just one primal
+%component and at most one dual component assigned
+%to a program. In fact, 
+It is possible
 to attach multiple primal and multiple dual components with
 a program -- each could compute some interesting aspect about the
 program, which can then be used to write complex and
@@ -3753,13 +3827,24 @@ generating and solving either
 the $\Phi_{\exists\forall}$ formula (in case there are only primals),
 the $\Phi_{\exists\exists}$ formula (in case there are only duals), or the 
 $\Psi_{\exists\forall}$ formula (in case there are both).
-Our synthesizer, along with all the examples 
-presented in the following Sections,
+Our tool, along with all the examples 
+%presented in the following sections,
 and corresponding 
-SMT instances, are available at~\texttt{ommited for double-blindness}.
+SMT instances, is available at~\texttt{ommited for double-blindness}.
 Our emphasis in the descriptions below will be on the use of duality.
 
+\begin{figure}
+    \begin{eqnarray*}
+    \ttrule{}{u=f(v,w),\quad\mathtt{know}(v),\quad\mathtt{know}(w)}{\mathtt{know}(u)}{\mbox{if $f$ is known}}
+        \\
+        \ttrule{}{u=v\oplus w,\quad\mathtt{know}(u),\quad\mathtt{know}(w)}{\mathtt{know}(v)}{}
+      \end{eqnarray*}
+      \caption{Decryptability check: Assuming that initially only the encrypted message is ``known'', we can apply the above rules to check if message $m$ can be ``known''. A $k$-step (bounded size) proof search can be encoded as a dual constraint.}
+      \label{fig:decrypt}
+\end{figure}
+
 \subsection{Block Cipher Modes}
+
 
 % \emph{Block cipher modes.} 
 %We emulated the work of Malozemoff et al.~\cite{DBLP:conf/csfw/MalozemoffKG14} to
@@ -3785,16 +3870,20 @@ then it implements a secure block cipher.
 The search for the {\em existence} of a correct labelling
 is then implemented using an SMT solver.
 Regarding correctness, the authors propose a
-fix-point algorithm analogous to our decryptability check presented in the previous
-section.
+fix-point algorithm analogous to our encoding of decryptability check 
+as a dual; see Figure~\ref{fig:decrypt}.
+%presented in the previous section.
 
 The labeling system proposed in~\cite{DBLP:conf/csfw/MalozemoffKG14} is
 a sound approximation technique for proving security,
-and it can encoded as a dual interpretation.
+and it can be encoded as a dual interpretation.
 A remarkable distinction of our approach, as opposed to the
 enumerate-and-check approach used in~\cite{DBLP:conf/csfw/MalozemoffKG14},
-is that we encode all the synthesis problem in a single logical constraint.
-Also, we should remark that our formulation of the problem 
+is that we encode all the synthesis problem in a single logical constraint,
+which allows the solver to interleave the search for program ($\exists$)
+with search for its correctness proof ($\exists$).
+% Also, % we should remark that 
+We note that our formulation of the problem 
 is analogous to the one in~\cite{DBLP:conf/csfw/MalozemoffKG14},
 in the sense that our sketches do not provide 
 additional ``hints'' to the synthesis tool.
@@ -3844,13 +3933,13 @@ in~\cite{DBLP:conf/csfw/MalozemoffKG14} is in fact an instance of the duality pr
  and hence it can be 
 encoded as a second dual program; that is,
 to ensure correctness 
-it is not necessary to synthesize a decryption scheme, but instead check for ``decryptability'',
+it is not necessary to synthesize a decryption scheme, but instead check for ``decryptability'' (Figure~\ref{fig:decrypt},
 which 
 allows to reduce synthesis to an $\exists\exists$ satisfiability problem ($\Phi_{\exists\exists}$
 from Section~\ref{sec:synthesis}). 
 This alternative approach resulted in a reduction in running time
-from ~100 seconds (using the $\Psi_{\exists\forall}$ approach described above) to
-~1 second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
+from $\sim 100$ seconds (using the $\Psi_{\exists\forall}$ approach described above) to
+$\sim 1$ second, to synthesize well-known encryption schemes such as CBC, OFB, CFB, OFB, and PCBC. 
 Moreover, another benefit of 
 reducing synthesis to an $\exists\exists$ satisfiability problem
 is that we can leverage the incremental solving capabilities
@@ -3984,9 +4073,9 @@ The first $15$ variants of our sketch are satisfiable
 (blue trace in the plot),
 and were obtained in the following way:
 we started from a sketch whose only solution 
-is the solution reported in~Section~\ref{sec:ex},
+is the solution reported in Section~\ref{sec:ex},
 and hence such that $|{\cal F}| = 1$,
-Then, we increasingly relaxed the sketch,
+and increasingly relaxed it
 until we obtained a general one.
 
 Hence, the leftmost data point of the satisfiable instances corresponds to 
@@ -4010,25 +4099,20 @@ is (3) messages from $C$,
 (15) programs for $A$, $B$, and $C$, letting $A$ have a total of 4 lines.
 
 The unsatisfiable instances are obtaines from (1)-(15) by adding the additional
-restriction that $C$ cannot use multiplication. This prevents this
-party from generating appropriately correlated random data,
-which results in unsatisfiable sketches
-
-The experiments were run using Yices as backend solver
-on a 2.30GHz machine with 8Gb of memory.
+restriction that $C$ cannot use multiplication. This prevents $C$ %this
+from generating appropriately correlated random data,
+which results in unsatisfiable sketches.
 
 Although it is difficult to make definitive statements 
 about the behaviour of SMT solvers, the plot in
 Figure~\ref{fig:plot-sec-mult}
 confirms a tendency that we have often observed:
-unsatisfiable instances 
-either are easy to solve or
-take longer to solve than unsatisfiable instances.
-%An intuitive explanation for that fenomenon 
-%is the fact that, while Yices 
-%is good at guiding the search, 
-%it struggles when all the search space has to be explored. 
-All teh sketches used in this section, as well as the 
+our approach scales well for satisfiable instances, 
+and hence using general sketches spanning a large ${\cal F}$
+is fine as long as ${\cal F}$ contains a solution.
+One the other hand, if the synthesis problem 
+is not realizable, proving so for large families of programs may not scale well.
+All the sketches used in this section, as well as the 
 corresponding SMT instances are available at
 ~\texttt{ommited for double-blindness}.
 
@@ -4038,7 +4122,10 @@ corresponding SMT instances are available at
 \centering
 \includegraphics[width=\columnwidth]{plot-sec-mult-no-labels.png}
 \caption{Running times for satisfiable and unsatisfiable variants of 
-the secure multiplication sketch.}
+the secure multiplication sketch.
+The experiments were run using Yices as backend solver
+on a 2.30GHz machine with 8Gb of memory.}
+
 \label{fig:plot-sec-mult}
 \end{figure}
 
@@ -4047,9 +4134,9 @@ the secure multiplication sketch.}
 
 Similar to the example in Sec.~\ref{sec:ex}, 
 Alice and Bob wish to carry out secure multiplication of 
-their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}$),
+their values (\texttt{input(A)}, \texttt{input(B)} $\in \mathbb{Z}_q$),
 with the help of Carol who distributes random values to both the parties.
-The only difference now is that the functional requirement now specifies
+The only difference is that the functional requirement now specifies
 that the sum of the shares computed by Alice, Bob 
 and Carol equals the product of the initial values 
 that Alice and Bob had access to.
@@ -4075,40 +4162,46 @@ protocol, which resembles the previously known Du-Atallah protocol~\cite{DA01} :
 
 \subsection{Dining Cryptographers}
 
-Anonimity protocols such as the Dining Cryptographers protocol,
+Anonimity protocols such as the Dining Cryptographers' protocol,
 proposed by Chaum~\cite{Chaum88}, are an interesting class of protocols for secure
 multi-party computation.
-The Dining Cryptographers' problem involves 3 cryptographers who decide to
+The % Dining Cryptographers' 
+problem involves 3 cryptographers who decide to
 dine-in together. The restaurant allows for anonymous payment of the bill,
 which could be paid by, either the National Security Agency (NSA),
-or one of the three cryptogtaphers.
+or one of the three cryptographers.
 The cryptographers respect each other's right to make an anonymous payment, 
 but want to find out whether the NSA paid.
+
 The original protocol proposed by Chaum is a two-stage protocol.
 In the first stage, every pair of cryptographers establish 
 a shared one-bit secret. 
-In the second stage, each cryptographer announces 
-whether the bits shared with him have
-\begin{itemize}
-    \item the same parity, if he did not pay the bill.
-    \item different parity, if he paid the bill.
-\end{itemize}
-An odd number of differences are uttered at the table if and only if
+In the second stage, each cryptographer announces the $\mathtt{xor}$
+of three bits: two bits shared with the two neighbors and one bit denoting
+if he paid the bill.
+%whether the bits shared with him have
+%\begin{itemize}\itemsep=0em
+    %\item the same parity, if he did not pay the bill.
+    %\item different parity, if he paid the bill.
+%\end{itemize}
+%An odd number of differences are uttered at the table 
+The $\mathtt{xor}$ of the three announced bits is $1$
+if and only if
 one of the cryptographers paid for the dinner (assuming at most 
 one of the cryptographers' paid).
 The protocol ensures that if a cryptographer is paying, 
-neither of the other two learns anything about who made the payment, 
+neither of the other two learns anything about who made the payment
 by observing the announcements.
 
-The components used for the sketch are boolean operations such as \texttt{and},
+The components used for the sketch are Boolean operations such as \texttt{and},
 \texttt{or}, \texttt{xor} and \texttt{not}, and random generators \texttt{genAB},
 \texttt{genBC} and \texttt{genCA}.
 One way to express the functional requirement for the protocol is to 
-express the semantics and the correctness criteria in the domain of boolean variables,
+express the semantics and the correctness criteria in the domain of Boolean variables,
 thus using the primal ($\exists \forall$) paradigm.
 Again, the correctness requirement, like in the case of secure 
 multiplication (Sec.~\ref{sec:ex}), can also be expressed in the
-abstract domain of boolean formulae expessed in Algebraic Normal Form 
+abstract domain of Boolean formulae expressed in Algebraic Normal Form 
 (XOR of AND of variables), thus allowing for synthesis using $\exists \exists$
 paradigm.
 In both cases, the non-functional security requirement
@@ -4123,7 +4216,7 @@ In the two party version of oblivious transfer (OT),
 one party, the \sender, has two messages $m_0$ and $m_1$,
 and the other party, the \chooser, can pick which message she wants to receive.
 The goal of oblivious transfer is to achieve this transfer of
-message from \sender\ to the \chooser, but with the additional
+message from \sender\ to the \chooser, but with the % additional
 requirements that
 (a) the \sender\ does not learn the choice made by the \chooser,
 and
@@ -4149,7 +4242,7 @@ $(g^a,g^b,g^c)$ for randomly and independently chosen elements $a,b,c$ from $\ma
 
 We provide a sketch to the synthesis tool that consists of four blocks of straight-line code.
 It is assumed that the \sender\ has access to random and independently chosen elements 
-$r,s$ from $\mathbb{Z}$, and the \chooser\ has access random and independently chosen
+$r,s$ from $\mathbb{Z}$, and the \chooser\ has access to random and independently chosen
 elements $a,b,c\in\mathbb{Z}$.
 
 %The program sketch says the following:
@@ -4175,15 +4268,22 @@ elements $a,b,c\in\mathbb{Z}$.
 %% \\
 %% (4) In Block 4, the \chooser\ uses exponentiation on known values to extract key $k_0$ or $k_1$.
 
-We are again able to perform synthesis 
+Due to technical difficulties in formalizing the security requirements,
+we used approximate requirements that eliminated a large number 
+insecure protocols, but not necessarily all of them. %sufficient to 
+Approches based on $\exists\forall$ paradigm failed due to the complexity
+of the protocol.
+However, we were able to perform synthesis 
 by completely eliminating the primal components
 and using only suitably designed % The key novelty in our synthesis approach  is that
 {\em{dual programs}}.
-Thus, we solve the OT synthesis problem by generating 
-an $\Phi_{\exists\exists}$ formula, which is then solved using an
-off-the-shelf SMT solver~\cite{yices,z3}.
+% Thus, we solve the OT synthesis problem by generating 
+% an $\Phi_{\exists\exists}$ formula, which is then solved using an
+% off-the-shelf SMT solver~\cite{yices,z3}.
 %
-The domain $\domd$ of our dual interpretation is just a fixed length
+\ignore{
+The dual domain $\domd$ % of our dual interpretation 
+is just a fixed length
 vector of real numbers. 
 %For simplicity, say these are length $1$ vectors.
 %For random values $r,s,a,b,c\in\mathbb{Z}$, we use fixed prime numbers;
@@ -4194,7 +4294,7 @@ which party has access to $x$ and which party has access to only $g^x$.
 All arithmetic operations on group elements are mapped to arithmetic operations
 on the exponents in the obvious way: for example, $(g^x)^y$ is simply $g^{xy}$,
 and $g^xg^y$ is simply $g^{x+y}$. 
-
+\endignore}
 %We capture the requirements of the OT protocol as follows:
 %(a) we ensure that the \chooser\ can extract message $m_0$, when it has picked $m_0$,
 %by checking that the (dual) value computed on Block 4 is equal to the key $k_0$
@@ -4206,8 +4306,8 @@ and $g^xg^y$ is simply $g^{x+y}$.
 %checking that the \sender\ is unable to generate the values sent by the \chooser.
 %We note that the checks in (b) and~(c) are necessarily incomplete. Nevertheless, they are
 %very effective in pruning out obviously insecure protocols.
-
-Using the above approach, we synthesized two different OT protocols:
+%
+Using the $\exists\exists$ approach, we synthesized two different OT protocols:
 the first protocol we synthesized was also recently reported in~\cite{SimpleOT},
 and the second protocol we synthesized is the Naor-Pinkas oblivious transfer protocol~\cite{Pinkas}.
 The solutions were obtained in about $1$ and $100$ seconds, respectively, 
@@ -4369,9 +4469,9 @@ as well as, type-based pruning~\cite{DBLP:conf/pldi/OseraZ15} of synthesis searc
 Our work builds upon the recent work on synthesis of security schemes
 using program synthesis techniques~\cite{TGD15:CADE}, where security
 requirements are captured using constraints.
-The work described in~\cite{TGD15:CADE} falls in the $\Psi_{\exists\forall}$
-paradigm. Here, we introduce duality and use the resulting 
-$\Phi_{\exists\exists}$ paradigm for synthesis; thus, speeding up synthesis
+The approach in~\cite{TGD15:CADE} falls in the $\Psi_{\exists\forall}$
+paradigm. Here, we introduce duality and the 
+$\Phi_{\exists\exists}$ paradigm for synthesis, which speeds up synthesis
 by atleast an order of magnitude.
 % is focused on the synthesis
 % application, and it does not formally present
@@ -4420,6 +4520,10 @@ Moreover, since computing certain answers is co-NP
 for commonly considered semantics, alternate semantics
 that provide underapproximations have been also proposed~\cite{Libkin15}.
 
+The dual interpretations behave as constraints, and hence
+our combination of primal and dual has flavors of contraint
+programming~\cite{constraintProgramming} and combining
+inductive and co-inductive constructs~\cite{AbelCoPatterns}.
 %Recently, we have implemented an exists-forall solver as part of the
 %SMT-solver Yices~\cite{Dutertre:cav2014,DBLP:conf/fmcad/GasconSDTJM14}. In this paper,
 %we present a language for specifying sketches, which are partially
@@ -4482,8 +4586,9 @@ check.
 %make the primal semantics redundant.
 %
 It is important to recognize this duality principle to understand
-different verification approaches, as well as, speed up 
-program synthesis.  We demonstrated its effectiveness on 
+different verification approaches, as well as, to significantly speed up 
+program synthesis, where search for program and search for its proof
+get interleaved.  We demonstrated its effectiveness on 
 synthesis of cryptographic schemes.
 
 %\acks
