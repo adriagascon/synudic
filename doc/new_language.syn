@@ -1,0 +1,56 @@
+
+// type declarations
+
+type index = scalar(x y r a b u xy xr xa xb xu yr ya yb yu ra rb ru ab au bu); //commas?
+type typ = function(index, real);
+
+// signature is shared by the whole file: all sketches use the sig.
+// remove attributes; attributes are particular to a semantics...
+signature =  { identity(1), times(2), minus(2), plus(2), pickx(0), picky(0), pickr(0), picku(0) };
+
+// Check: Removing input0 and input1 from signature 
+
+// procedure declarations
+sketch P1(np1)(x,y) {
+   B1[np1] := (pickx | picky | times(x, y) | minus(x, y)); 
+   // the last line is the return value of the procedure
+}
+
+sketch secure_mult(nc, na1, nb1, na2)(a, b) {  // nc, na1, nb1, na2 are parameters
+
+   B1[nc] := P1(1)(B1, B1);  // block declaration by means of a procedure sketch (defined in the context)
+   B2[1]  := (pickx | picky | times(B1 | B2, B2) | minus(B1 | B2, B1)); 
+   B3[nc] := P1(1)(B2, B1);  // procedure sketches can be reused
+
+}
+
+dual typ_intr = signature(typ) {
+       // all this are functions that return a constraint (a bool), since the interpretation is dual,
+       // and parameters are always of type typ (in fact typ will always be an assignment)
+       pickx = function(typ t) {
+            c = lambda(z): (t(z) == 1 iff z == x);
+            return all([c(z) for z in dom(typ)]); 
+            // or return and(map(lambda z: t(z) == 1 iff z == x,  dom(typ)));
+       };
+
+       identity = function(typ t1, typ t2){
+            return t1 = t2; 
+            // all([t1(z) = t2(z) for z in dom(typ)]) or all([t1(z) = t2(z) for z in index])
+       };
+
+       plus = function(typ t1, typ t2, typ t3){
+            c1 = lambda(z): z == 0 or z == 1 or z = -1
+            c2 = lambda(z1, z2, z3): z3 = z1 + z2
+            return all([c1(z) for z in dom(typ)]) and all([c2(t1(z), t2(z), t3(z)) for z in dom(typ)]);
+       }
+
+       secure_mult = function(typ a, typ b, typ c) {
+            // ensure formula goes here
+       }
+
+       P1 = function(typ x, typ y, typ z) {
+            // correctness for P1 goes here
+       }
+}
+
+
