@@ -16,6 +16,11 @@ if __name__ == "__main__":  # {{{
     parser.add_argument('--solver',
         help='Sets solver from {yices, z3}, default is yices.',
         default='yices')
+    parser.add_argument('--max_iters_yices',
+        help='Sets maximum number of iterations for yices solver, '
+            'default is 20000.', type=int, default=20000)
+    parser.add_argument('--verbosity', '-v',
+        help='Sets the verbosity level, default is 0', type=int, default=0)
 
     args = parser.parse_args()
 
@@ -34,7 +39,7 @@ if __name__ == "__main__":  # {{{
     if args.solver == 'z3' or args.all_solutions:
         solver = Z3Solver(args.all_solutions)
     else:
-        solver = YicesSolver()
+        solver = YicesSolver(args.verbosity, args.max_iters_yices)
     solver.parse_input(args.input_file, parameters_dict,
         args.solver, args.all_solutions)
     size = solver.get_estimated_search_space_size()

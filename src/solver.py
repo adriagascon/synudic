@@ -80,6 +80,11 @@ class Solver(Sketch):
             print ""
 
     def to_yices(self, content, with_check=True):
+        try:
+            content.append('(set-param ef-max-iters {0})'.format(
+                self.max_num_iters))
+        except AttributeError:
+            pass
         content.append(';; Line type declarations')
         all_line_names = [' '.join(b.line_names + b.unused_arg_line_names)
             for b in self.blocks]
@@ -135,6 +140,7 @@ class Solver(Sketch):
         if with_check:
             if self.existsforall:
                 content.append('(ef-solve)')
+                content.append('(show-model)')
             else:
                 content.append('(check)')
                 content.append('(show-model)')
@@ -184,7 +190,6 @@ class Solver(Sketch):
         types = []
         with open(filename, 'r') as f_desc:
             for line in f_desc.readlines():
-                #print line
                 if not line.strip(): continue
                 if line.strip() == 'unsat':
                     return None
@@ -192,10 +197,7 @@ class Solver(Sketch):
                     parsing_model = True
                     continue
                 if parsing_model:
-                    if existsforall: # the output format is different for the ef solver
-                        m = re.match('\s*(\S+)\s*:=\s*(\S+)', line)
-                    else:
-                        m = re.match ('\(= (\S+) (\S+)\)', line)
+                    m = re.match ('\(= (\S+) (\S+)\)', line)
                     if m and line:
                         var, val = m.group(1), m.group(2)
                         model[var] = val
@@ -205,16 +207,15 @@ class Solver(Sketch):
                         # else:
                             # types[-1] += line.rstrip()
         if not existsforall:
-            pass
-            #model["_types_"] = parse_yices_types(types)
+            pass#model["_types_"] = parse_yices_types(types)
         return model
 
 
 class YicesSolver(Solver):
-    def __init__(self):
+    def __init__(self, verbosity, max_num_iters):
         Solver.__init__(self)
-
- 
+        self.verbosity_level = verbosity
+        self.max_num_iters = max_num_iters
 
     def solve(self, dont_run=False):
         tmp_filename = 'tmp.txt'
@@ -233,12 +234,13 @@ class YicesSolver(Solver):
         f = MyFile(yices_filename)
         self.to_yices(f)
         with open(tmp_filename, 'w') as tmp_file_desc:
+            verbosity_option = '--verbosity={0}'.format(self.verbosity_level)
             if self.existsforall:
                 yices_command_list =\
-                    ['yices', '--mode=ef', '--verbosity=10', yices_filename]
+                    ['yices', '--mode=ef', verbosity_option, yices_filename]
             else:
                 yices_command_list = ['yices', '--mode=one-shot',
-                    '--verbosity=10', yices_filename]
+                    verbosity_option, yices_filename]
             print 'Running "{0}"'.format(' '.join(yices_command_list))
             start = time.time()
             subprocess.call(yices_command_list, stdout=tmp_file_desc)

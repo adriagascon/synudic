@@ -1,0 +1,70 @@
+(max_sketch
+
+  (comment "Max of two integers")
+  (comment "Usage: python Synudic.py max.sketch na=4")
+  (comment "type: boolean denoting if input is used")
+
+  (library
+    (bvand 2)
+    (bvxor 2)
+    (bvshr 1)
+    (bvadd 2)
+    (bvsub 2)
+    (bvge  2)
+    (bvnot 1)
+    (bvneg 1)
+    (bvone 1)
+    (identity 1)
+    (average 2)
+  )
+
+  (primal dom
+    (decls
+      (define-type dom (bitvector 5))
+      (define bvand::(-> dom dom dom) (lambda (x::dom y::dom) (bv-and x y)))
+      (define bvxor::(-> dom dom dom) (lambda (x::dom y::dom) (bv-xor x y)))
+      (define bvadd::(-> dom dom dom) (lambda (x::dom y::dom) (bv-add x y)))
+      (define bvsub::(-> dom dom dom) (lambda (x::dom y::dom) (bv-sub x y)))
+      (define bvge::(-> dom dom dom) (lambda (x::dom y::dom) (bool-to-bv (bv-ge x y)  (bv-ge x y)  (bv-ge x y)  (bv-ge x y)  (bv-ge x y) )))
+      (define bvshr::(-> dom dom) (lambda (x::dom) (bv-ashr x (mk-bv 5 1))))
+      (define bvnot::(-> dom dom) (lambda (x::dom) (bv-not x)))
+      (define bvneg::(-> dom dom) (lambda (x::dom) (bv-neg x)))
+      (define bvone::(-> dom dom) (lambda (x::dom) (mk-bv 5 1)))
+      (define identity::(-> dom dom) (lambda (x::dom) x))
+      (define average::(-> dom dom dom) (lambda (x::dom y::dom) (ite (bv-ge x y) x y)))
+    )
+
+    (ensure (= (dom l1 na) (dom spec 1)))
+  )
+
+  (dual typ
+    (decls
+      (define-type typ bool)
+      (define bvand::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) (= z (or x y))))
+      (define bvxor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) (= z (or x y))))
+      (define bvadd::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) (= z (or x y))))
+      (define bvsub::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) (= z (or x y))))
+      (define bvge::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) (= z (or x y))))
+      (define bvshr::(-> typ typ bool) (lambda (x::typ y::typ) (= y x)))
+      (define bvnot::(-> typ typ bool) (lambda (x::typ y::typ) (= y x)))
+      (define bvneg::(-> typ typ bool) (lambda (x::typ y::typ) (= y x)))
+      (define identity::(-> typ typ bool) (lambda (x::typ y::typ) (= y x)))
+      (define bvone::(-> typ typ bool) (lambda (x::typ y::typ) (= y false)))
+      (define average::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) true))
+    )
+  )
+
+  (parameters na)
+
+
+
+  (blocks
+    (Lx 1 ((input x::true)))
+    (Ly 1 ((input y::true)))
+    (l1 na ((bvand (Lx Ly -) (Lx Ly -)) (bvxor (Lx Ly -) (Lx Ly -)) (bvge (Lx Ly -) (Lx Ly -)) (bvadd (Lx Ly -) (Lx Ly -)) ))
+    (spec 1 ((average (Lx) (Ly) )))
+  )
+
+)
+
+

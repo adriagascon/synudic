@@ -64,8 +64,10 @@ class Sketch:
         for b in self.blocks:
             line_sizes = []
             for c in b.constraints:
-                #print c.function.name, c.param_constraint
-                if len(c.param_constraint) > 1:
+                if not isinstance(c, FunctionConstraint):
+                    # c is an input
+                    line_size = 1
+                elif len(c.param_constraint) > 1:
                     line_size = reduce(
                         lambda x, y: len(x) * len(y), c.param_constraint)
                 else:
@@ -805,7 +807,7 @@ def bnf(sk):
     lpar = Suppress("(")
     rpar = Suppress(")")
     colon = Literal(":")
-    word = Word(alphanums + '_/-#:.=')
+    word = Word(alphanums + '_/-#:.=<>')
     number = Word(nums)
     double_quote = Suppress('\"')
     text = ZeroOrMore(word)
