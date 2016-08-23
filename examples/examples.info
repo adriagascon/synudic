@@ -1,0 +1,45 @@
+Secure multiplication:
+    
+    Command lines:
+
+    python src/main.py examples/secure_mult_1.sketch nc=5 na1=1 nb1=3 na2=2
+
+    Issues:
+        - Does not work with z3
+
+BC modes of operation:
+    
+    Command lines:
+
+    python src/main.py examples/bc_modes_noprimal.sketch na=2 nb=4 nlevels=5 --solver z3
+    python src/main.py examples/bc_modes_noprimal.sketch na=2 nb=4 nlevels=5 --all_solutions    
+    python src/main.py examples/bc_modes_noprimal.sketch na=2 nb=4 nlevels=5
+    
+    Issues:
+        - Search space size is not computed correctly
+
+Bit vector operations:
+
+    Command lines:
+
+    python src/main.py examples/max.sketch na=4
+    python src/main.py examples/average.sketch na=4
+    python src/main.py examples/isolateRightmostOne.sketch na=2
+    python src/main.py examples/mask10s.sketch na=3
+
+    Issues:
+        - Do not work with z3 (this should be possible, as it was done in [1])
+
+[1] @inproceedings{DBLP:conf/fmcad/GasconSDTJM14,
+  author    = {Adria Gasc{\'{o}}n and
+               Pramod Subramanyan and
+               Bruno Dutertre and
+               Ashish Tiwari and
+               Dejan Jovanovic and
+               Sharad Malik},
+  title     = {Template-based circuit understanding},
+  booktitle = {{FMCAD}},
+  pages     = {83--90},
+  publisher = {{IEEE}},
+  year      = {2014}
+}
