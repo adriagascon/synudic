@@ -1,0 +1,120 @@
+(oeap_sketch
+
+  (comment "NEW SYNUDIC LANGUAGE")
+  (comment "Usage: python Synudic.py examples/oeap_w1.sketch na=3 nb=4")
+
+  (primal value
+    (decls
+      (define-type value (bitvector 5)) ;; the type name must correspond with the interpretation name
+      (define G::(-> value value) (lambda (x::value) (bv-rotate-right x 2)))
+      (define H::(-> value value) (lambda (x::value) (bv-rotate-left x 3)))
+      (define oplus::(-> value value value) (lambda (x::value y::value) (bv-xor x y)))
+      (define oplusr::(-> value value value) (lambda (x::value y::value) (bv-xor x y)))
+      (define identity::(-> value value) (lambda (x::value) x))
+    )
+    (ensure (= (value lm 1) (value l3 nb)))
+  )
+
+  (dual typ
+    (decls
+      (define-type typ (bitvector 6)) ;; the type name must correspond with the interpretation name
+      (define ism::(-> typ bool) (lambda (x::typ) (bit x 0)))
+      (define isr::(-> typ bool) (lambda (x::typ) (not (bit x 0))))
+      (define isrand::(-> typ bool) (lambda (x::typ) (bit x 1)))
+      (define istopg::(-> typ bool) (lambda (x::typ) (bit x 2)))
+      (define istoph::(-> typ bool) (lambda (x::typ) (bit x 3)))
+      (define istopx::(-> typ bool) (lambda (x::typ) (bit x 4)))
+      (define size-m::(-> typ bool) (lambda (x::typ) (bit x 5)))
+      (define size-r::(-> typ bool) (lambda (x::typ) (not (bit x 5))))
+
+      (define H::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and (size-r y)
+              (size-m x)
+              (ism x)
+              (isr y)
+              (<=> (isrand x) (isrand y)) (not (istopg x))
+              (istoph y)
+              (not (istopg y))
+              (not (istopx y))
+              )))
+
+      (define G::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and (size-m y)
+              (size-r x)
+              (isr x)
+              (ism y)
+              (<=> (isrand x) (isrand y))
+              (not (istoph x)) (istopg y) (not (istoph y))
+              (not (istopx y))
+      )))
+
+      (define oplus::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and
+            (/= x y)
+            (= (size-m x) (size-m y))
+            (= (size-m y) (size-m z))
+            (or (and (ism x) (ism y) (ism z))
+                (and (isr x) (isr y) (isr z)))
+            (not (istopg z))
+            (not (istoph z))
+            (istopx z)
+            (or (istopg x) (istoph x) (istopg y) (istoph y))
+            (<=> (and (or (isrand x) (isrand y)) (/= x y)) (isrand z))
+            )))
+
+      (define oplusr::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and
+            (/= x y)
+            (= (size-m x) (size-m y))
+            (= (size-m y) (size-m z))
+            (or (and (ism x) (ism y) (ism z))
+                (and (isr x) (isr y) (isr z)))
+            (not (istopg z))
+            (not (istoph z))
+            (istopx z)
+            (or (istopg x) (istoph x) (istopg y) (istoph y))
+            (not (istopx x))
+            (not (istopx y))
+            (<=> (and (or (isrand x) (isrand y)) (/= x y)) (isrand z))
+            )))
+
+      (define identity::(-> typ typ bool) (lambda (x::typ y::typ) (= x y)))
+    )
+
+    (ensure
+      (and
+        (= (typ lm 1) (bool-to-bv true false false false false true))
+        (= (typ lr 1) (bool-to-bv false false false false true false))
+        (size-m (typ lm 1))
+        (size-r (typ lr 1))
+        (isrand (typ l2 1))
+        (isrand (typ l2 2))
+        (istopx (typ l2 1))
+        (istopx (typ l2 2))
+      )
+    )
+  )
+
+  (parameters na nb)
+
+  (library
+    (G 1)
+    (H 1)
+    (oplus 2)
+    (oplusr 2)
+    (identity 1)
+  )
+
+  (blocks
+    (lm 1 ((input m)))
+    (lr 1 ((input r)))
+    (l1 na ((oplusr (lm lr -) (lm lr -)) (G (lm lr -)) (H (lm lr -))))
+    (l2 2  ((identity (l1 lr))))
+    (l3 nb ((oplus (l2 -) (l2 -)) (G (l2 -)) (H (l2 -))))
+  )
+
+)

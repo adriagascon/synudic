@@ -4,6 +4,9 @@ Secure multiplication:
 
     python src/main.py examples/secure_mult_1.sketch nc=5 na1=1 nb1=3 na2=2
 
+    Variants of the same example (with different sketches) can be run similarly.
+    python src/main.py examples/secure_mult_[2..14].sketch nc=5 na1=1 nb1=3 na2=2
+
     Issues:
         - Does not work with z3
 
@@ -29,6 +32,13 @@ Bit vector operations:
 
     Issues:
         - Do not work with z3 (this should be possible, as it was done in [1])
+
+OEAP Padding-based encryption scheme:
+
+    Command line:
+
+    python src/main.py examples/oeap.sketch na=4 nb=2
+
 
 [1] @inproceedings{DBLP:conf/fmcad/GasconSDTJM14,
   author    = {Adria Gasc{\'{o}}n and
