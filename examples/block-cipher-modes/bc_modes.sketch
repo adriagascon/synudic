@@ -1,0 +1,247 @@
+;; Usage: python Synudic.py sketch na=3 nb=3 nc=3
+;; type: <istopxor> <istoph> <istopg> <isrand> <issizem>
+
+(bc_modes_sketch
+
+  (parameters na nb nc)
+
+  (library
+    (PRF 1)
+    (dup1 1)
+    (dup2 1)
+    (out 1)
+    (nextiv 1)
+    (start 1)
+    (oplus 2)
+
+    (PRF_dec 1)
+    (oplus_dec 2)
+    (dup1_dec 1)
+    (dup2_dec 1)
+    (out_dec 1)
+  )
+
+  (blocks
+    (lm 1 ((input m) ))
+    (lr 1 ((input r) ))
+    (l1 1 ((input dstart) ))
+
+    (ini na ( (oplus (lr -) (lr -)) (dup1 (lr -)) (dup2 (lr -)) ) )
+    (iniout 1 ( (out (ini)) ) )
+    (ininextiv 1 ( (nextiv (ini)) ) )
+
+    (startout 1 ( (start (l1)) ) )
+    (enc nb (
+              (oplus (startout lm -) (startout lm -) )
+              (PRF (startout lm -))
+              (dup1 (startout lm -))
+              (dup2 (startout lm -))
+            )
+    )
+    (encout 1 ( (out (enc)) ) )
+    (encnextiv 1 ( (nextiv (enc)) ))
+
+    (dec nc (
+              (oplus_dec (startout encout -) (startout encout -))
+              (PRF (startout encout -))
+              (PRF_dec (startout encout -))
+              (dup1_dec (startout -))
+              (dup2_dec (startout -))
+            )
+    )
+    (decout 1 ( (out_dec (dec)) ) )
+  )
+
+  ;; check for functional correctness by synthesizing decryption alg
+  (primal value
+    (decls
+      (define-type value (bitvector 5))
+      (define PRF::(-> value value) (lambda (x::value) (bv-rotate-right x 2)))
+      (define oplus::(-> value value value) (lambda (x::value y::value) (bv-xor x y)))
+      (define dup1::(-> value value) (lambda (x::value) x))
+      (define dup2::(-> value value) (lambda (x::value) x))
+      (define out::(-> value value) (lambda (x::value) x))
+      (define nextiv::(-> value value) (lambda (x::value) x))
+      (define start::(-> value value) (lambda (x::value) x))
+      (define oplus_dec::(-> value value value) (lambda (x::value y::value) (bv-xor x y)))
+      (define PRF_dec::(-> value value) (lambda (x::value) (bv-rotate-left x 2)))
+      (define dup1_dec::(-> value value) (lambda (x::value) x))
+      (define dup2_dec::(-> value value) (lambda (x::value) x))
+      (define out_dec::(-> value value) (lambda (x::value) x))
+    )
+    (ensure (= (value decout 1) (value lm 1)))
+  )
+
+  (dual typ
+    (decls
+      (define-type typ (bitvector 7))
+
+      (define isrand::(-> typ bool) (lambda (x::typ) (bit x 0)))
+      (define flagsout::(-> typ bool) (lambda (x::typ) (bit x 1)))
+      (define flagsprf::(-> typ bool) (lambda (x::typ) (bit x 2)))
+      (define hasm::(-> typ bool) (lambda (x::typ) (bit x 3)))
+      (define hasstart::(-> typ bool) (lambda (x::typ) (bit x 4)))
+      (define hasr::(-> typ bool) (lambda (x::typ) (bit x 5)))
+      (define hasprf::(-> typ bool) (lambda (x::typ) (bit x 6)))
+
+      (define oplus_dec::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          true
+        )
+      )
+
+      (define PRF_dec::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          true
+        )
+      )
+
+      (define dup1_dec::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          true
+        )
+      )
+
+      (define dup2_dec::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          true
+        )
+      )
+
+      (define out_dec::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          true
+        )
+      )
+
+
+      (define oplus::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and
+            (not
+              (or
+                (and (hasprf x) (hasprf y))
+                (and (hasr x) (hasr y))
+                (and (hasm x) (hasm y))
+                (and (hasstart x) (hasstart y))
+              )
+            )
+            (= (hasprf z) (or (hasprf x) (hasprf y)))
+            (= (hasr z) (or (hasr x) (hasr y)))
+            (= (hasm z) (or (hasm x) (hasm y)))
+            (= (hasstart z) (or (hasstart x) (hasstart y)))
+            (or (isrand x) (isrand y))
+            (isrand z)
+            (ite
+              (and (isrand x) (isrand y))
+              (and
+                (= (flagsout z) (or (flagsout x) (flagsout y)))
+                (= (flagsprf z) (or (flagsprf x) (flagsprf y)))
+              )
+              (ite
+                (isrand x)
+                (and
+                  (= (flagsout z) (flagsout x))
+                  (= (flagsprf z) (flagsprf x))
+                )
+                (and
+                  (= (flagsout z) (flagsout y))
+                  (= (flagsprf z) (flagsprf y))
+                )
+              )
+            )
+          )
+        )
+      )
+
+      (define PRF::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (hasprf y)
+            (not (hasr y))
+            (not (hasm y))
+            (not (hasstart y))
+            (isrand x)
+            (isrand y)
+            (flagsprf x)
+            (flagsprf y)
+            (flagsout y)
+          )
+        )
+      )
+
+
+      (define dup1::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (= (hasprf x) (hasprf y))
+            (= (hasr x) (hasr y))
+            (= (hasm x) (hasm y))
+            (= (hasstart x) (hasstart y))
+            (= (isrand x) (isrand y))
+            (= (flagsout y) (flagsout x))
+            (= (flagsprf y) false)
+          )
+        )
+      )
+
+    (define dup2::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (= (hasprf x) (hasprf y))
+            (= (hasr x) (hasr y))
+            (= (hasm x) (hasm y))
+            (= (hasstart x) (hasstart y))
+            (= (isrand x) (isrand y))
+            (= (flagsout y) false)
+            (= (flagsprf y) (flagsprf x))
+          )
+        )
+      )
+
+      (define nextiv::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (flagsprf x)
+            (not (flagsout x))
+            (= x y)
+          )
+        )
+      )
+
+      (define out::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (flagsout x)
+            (not (flagsprf x))
+            (= x y)
+          )
+        )
+      )
+
+      (define start::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and
+            (hasstart y)
+            (not (hasr y))
+            (not (hasm y))
+            (not (hasprf y))
+          )
+        )
+      )
+    )
+
+
+    (ensure
+      (and
+        (= (typ lm 1) (bool-to-bv false false false true false false false))
+        (= (typ lr 1) (bool-to-bv false true false false true true true))
+        (= (typ l1 1) (bool-to-bv false false false false false false false))
+        (=> (flagsprf (typ startout 1)) (flagsprf (typ encnextiv 1)) )
+        (=> (flagsout (typ startout 1)) (flagsout (typ encnextiv 1)) )
+        (=> (flagsprf (typ startout 1)) (flagsprf (typ ininextiv 1)) )
+        (=> (flagsout (typ startout 1)) (flagsout (typ ininextiv 1)) )
+      )
+    )
+  )
+)
