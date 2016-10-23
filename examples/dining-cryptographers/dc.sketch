@@ -1,0 +1,98 @@
+(dc_sketch
+
+  (comment "Dining Cryptographers protocol (3 cryptographers)")
+  (comment "Usage: python Synudic.py dc.sketch n1=3 n2=2")
+  (comment "domp: boolean/bit")
+  (comment "domd: boolean denoting result is random or not")
+
+  (primal domp
+    (decls
+      (define-type domp bool)
+      (define bxor::(-> domp domp domp) (lambda (x::domp y::domp) (xor x y)))
+      (define bnot::(-> domp domp) (lambda (x::domp) (not x)))
+      (define band::(-> domp domp domp) (lambda (x::domp y::domp) (and x y)))
+      (define bor::(-> domp domp domp) (lambda (x::domp y::domp) (or x y)))
+      (define identity::(-> domp domp) (lambda (x::domp) x))
+      (define bone::"domp" true) ;; change the syht.ys file to remove paranthesis around domp-bone
+      (define zeroorone::(-> domp domp domp bool) 
+                        (
+                            lambda (x::domp y::domp z::domp) 
+                            (or 
+                                (and x (and (not y) (not z)))
+                                (and (not x) (and y (not z)))
+                                (and (not x) (and (not y) z))
+                                (and (not x) (and (not y) (not z)))
+                            )
+                        ) 
+      )
+    )
+
+    (ensure 
+        (=>
+            (zeroorone (domp LA 1) (domp LB 1) (domp LC 1))
+            (= (domp lout n2) (or (domp LA 1) (domp LB 1) (domp LC 1)))
+        )
+    )
+  )
+
+  (dual domd
+    (decls
+      (define-type domd (bitvector 3)) ; Not a very clean approach: The dimension changes with the number of cryptographers
+      (define bxor::(-> domd domd domd bool) (lambda (x::domd y::domd z::domd) (= z (bv-xor x y)) ))
+      (define bnot::(-> domd domd bool) (lambda (x::domd y::domd) (= x y)))
+      (define band::(-> domd domd domd bool) (lambda (x::domd y::domd z::domd) (= z "0b000")))
+      (define bor::(-> domd domd domd bool) (lambda (x::domd y::domd z::domd) (= z "0b000")))
+      (define identity::(-> domd domd bool) (lambda (x::domd y::domd) (= x y)))
+      (define bone::(-> domd bool) (lambda (x::domd) (= x "0b000")))
+      (define isrand::(-> domd bool) (lambda (x::domd) (bv-gt x "0b000") ))
+      ;(define countsetbits::(-> domd domd) (lambda (x::domd) (bv-add (bv-and x "0b001") (bv-add (bv-shift-right0 (bv-and x "0b010") 1) (bv-shift-right0 (bv-and x "0b100") 2)))))
+      ;(define atleastksetbits::(-> domd domd bool) (lambda (x::domd k::domd) (bv-ge (countsetbits x) k)))
+      ;(define dualsourceofrandomness::(-> domd bool) (lambda (x::domd) (atleastksetbits x "0b010")))
+      (define dualsourceofrandomness::(-> domd bool) (lambda (x::domd) (or (= x "0b011") (= x "0b101") (= x "0b110") (= x "0b111"))))
+    )
+    
+    (ensure
+        (and
+            (not (isrand (domd LA 1)))
+            (not (isrand (domd LB 1)))
+            (not (isrand (domd LC 1)))
+            (= (domd SAB 1) (mk-bv 3 1))
+            (= (domd SBC 1) (mk-bv 3 2))
+            (= (domd SCA 1) (mk-bv 3 4))
+            (isrand (domd laa 1))
+            (isrand (domd lbb 1))
+            (isrand (domd lcc 1))
+            (dualsourceofrandomness (domd laa 1))
+            (dualsourceofrandomness (domd lbb 1))
+            (dualsourceofrandomness (domd lcc 1))
+        )
+    )
+  )
+
+  (parameters n1 n2)
+
+  (library
+    (bxor 2)
+    (bnot 1)
+    (band 2)
+    (bor 2)
+    (bone 0)
+    (identity 1)
+  )
+
+  (blocks
+    (LA 1 ((input a)))
+    (LB 1 ((input b)))
+    (LC 1 ((input c)))
+    (SAB 1 ((input ab)))
+    (SBC 1 ((input bc)))
+    (SCA 1 ((input ca)))
+    (la n1 ( (bxor (LA SAB SCA -) (LA SAB SCA -)) (bnot (LA SAB SCA -)) (bor (LA SAB SCA -) (LA SAB SCA -)) (band (LA SAB SCA -) (LA SAB SCA -)) (identity (LA SAB SCA -)) (bone)))
+    (laa 1 ( (bxor (la LA SAB SCA -) (la LA SAB SCA -)) (bnot (la LA SAB SCA -)) (bor (la LA SAB SCA -) (la LA SAB SCA -)) (band (la LA SAB SCA -) (la LA SAB SCA -)) (identity (la LA SAB SCA -)) (bone) ))
+    (lb n1 ( (bxor (LB SAB SBC -) (LB SAB SBC -)) (bnot (LB SAB SBC -)) (bor (LB SAB SBC -) (LB SAB SBC -)) (band (LB SAB SBC -) (LB SAB SBC -)) (identity (LB SAB SBC -)) (bone) ))
+    (lbb 1 ( (bxor (lb LB SAB SBC -) (lb LB SAB SBC -)) (bnot (lb LB SAB SBC -)) (bor (lb LB SAB SBC -) (lb LB SAB SBC -)) (band (lb LB SAB SBC -) (lb LB SAB SBC -)) (identity (lb LB SAB SBC -)) (bone) ))
+    (lc n1 ( (bxor (LC SBC SCA -) (LC SBC SCA -)) (bnot (LC SBC SCA -)) (bor (LC SBC SCA -) (LC SBC SCA -)) (band (LC SBC SCA -) (LC SBC SCA -)) (identity (LC SBC SCA -)) (bone) ))
+    (lcc 1 ( (bxor (lc LC SBC SCA -) (lc LC SBC SCA -)) (bnot (lc LC SBC SCA -)) (bor (lc LC SBC SCA -) (lc LC SBC SCA -)) (band (lc LC SBC SCA -) (lc LC SBC SCA -)) (identity (lc LC SBC SCA -)) (bone) ))
+    (lout n2 ((bxor (laa lbb lcc -) (laa lbb lcc -)) (bnot (laa lbb lcc -)) (band (laa lbb lcc -) (laa lbb lcc -)) (bor (laa lbb lcc -) (laa lbb lcc -)) (identity (laa lbb lcc -)) (bone) ))
+  )
+)
