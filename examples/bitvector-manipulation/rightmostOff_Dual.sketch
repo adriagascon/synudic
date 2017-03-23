@@ -1,0 +1,82 @@
+(rightmostOff_sketch
+
+  (comment "Turnoff rightmost 1 bit")
+  (comment "Usage: python Synudic.py rightmostOff.sketch na=5")
+  (comment "type: boolean denoting if input is used")
+
+  (parameters na)
+
+  (library
+    (bvand 2)
+    (bvxor 2)
+    (bvshr 1)
+    (bvsub 1)
+    (bvnot 1)
+  )
+
+  (blocks
+    (Lx 1 ((input x)))
+    (l1 na ((bvand (Lx -) (Lx -)) (bvxor (Lx -) (Lx -)) (bvshr (Lx -)) (bvsub (Lx -)) (bvnot (Lx -)) ))
+  )
+
+  (dual typ
+    (decls
+      (define-type typE (scalar one zero posx unknown))
+      (define-type typI (scalar i0 i1 i2 i3 i4))
+      (define-type typ (-> typI typE))
+      (define forall_def::(-> (-> typI bool) bool)
+        (lambda (pred::(-> typI bool))
+          (and (pred i0) (pred i1) (pred i2) (pred i3) (pred i4))))
+      (define bvand::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (forall_def (lambda (w::typI) (or 
+                            (and (= (x w) zero) (= (z w) zero))
+                            (and (= (y w) zero) (= (z w) zero))
+                            (and (= (x w) one) (= (z w) (y w)))
+                            (and (= (y w) one) (= (z w) (x w))) 
+                            (and (= (y w) (x w)) (= (z w) (x w))) 
+                            (= (z w) unknown))))))
+      (define bvxor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (forall_def (lambda (w::typI) (or 
+                            (and (= (x w) zero) (= (y w) (z w) ))
+                            (and (= (y w) zero) (= (x w) (z w) ))
+                            (and (= (x w) (y w)) (= (z w) zero)) 
+                            (= (z w) unknown))))))
+
+      (define bvsub::(-> typ typ bool) (lambda (x::typ z::typ) 
+        (or (and (= (x i4) one) (= (z i4) zero) (= (x i3) (z i3)) (= (x i2) (z i2)) (= (x i1) (z i1)) (= (x i0) (z i0)) )
+            (and (= (x i4) zero) (= (x i3) one) (= (z i4) one) (= (z i3) zero) (= (x i2) (z i2)) (= (x i1) (z i1)) (= (x i0) (z i0)) )
+            (and (= (x i4) zero) (= (x i3) zero) (= (x i2) one) (= (z i4) one) (= (z i3) one) (= (z i2) zero) (= (x i1) (z i1)) (= (x i0) (z i0)) )
+            (and (= (x i4) zero) (= (x i3) zero) (= (x i2) zero) (= (x i1) one) (= (z i4) one) (= (z i3) one) (= (z i2) one) (= zero (z i1)) (= (x i0) (z i0)) )
+            (and (= (x i4) zero) (= (x i3) zero) (= (x i2) zero) (= (x i1) zero) (= (x i0) one) (= (z i4) one) (= (z i3) one) (= (z i2) one) (= one (z i1)) (= zero (z i0)) ))))
+
+
+      (define bvshr::(-> typ typ bool) (lambda (x::typ z::typ) 
+        (and (= (x i3) (z i4)) (= (x i2) (z i3)) (= (x i1) (z i2)) (= (x i0) (z i1)) (= zero (z i0)))))
+
+      (define negate::(-> typE typE) (lambda (x::typE) (ite (= x one) zero (ite (= x zero) one unknown))))
+
+      (define bvnot::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (forall_def (lambda (w::typI) (= (x w) (negate (y w)))))))
+
+
+    )
+
+    (ensure
+     (and 
+       (= ((typ Lx 1) i0) posx)
+       (= ((typ Lx 1) i1) posx)
+       (= ((typ Lx 1) i2) one)
+       (= ((typ Lx 1) i3) zero)
+       (= ((typ Lx 1) i4) zero)
+       (= ((typ l1 na) i0) posx)
+       (= ((typ l1 na) i1) posx)
+       (= ((typ l1 na) i2) zero)
+       (= ((typ l1 na) i3) zero)
+       (= ((typ l1 na) i4) zero))
+    )
+  )
+
+
+)
+
+
