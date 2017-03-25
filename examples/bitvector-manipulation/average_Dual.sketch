@@ -1,0 +1,68 @@
+(average_sketch
+
+ (comment "Floor of average of two integers without overflowing")
+ (comment "Usage: python src/main.py average_Dual.sketch na=4")
+ (comment "type: upper-bounded by a times in1 op b times in2 plus c ")
+
+ (parameters na)
+
+ (library
+   (bvand 2)
+   (bvxor 2)
+   (bvshr 1)
+   (bvadd 2)
+   (bvsub 2)
+   (bvnot 1)
+   (bvneg 1)
+ )
+
+ (blocks
+  (Lx 1 ((input x)))
+  (Ly 1 ((input y)))
+  (l1 na ((bvand (Lx Ly -) (Lx Ly -)) (bvxor (Lx Ly -) (Lx Ly -)) (bvshr (Lx Ly -)) (bvadd (Lx Ly -) (Lx Ly -))))
+ )
+
+  (dual typ
+    (decls
+      (define-type op (scalar plus minus myxor myand myor mynot myneg))
+      (define-type typ (tuple real real real op))
+      (define helper::(-> op typ typ typ ) (lambda (o::op x::typ y::typ) 
+        (mk-tuple (+ (select x 1) (select y 1))
+                  (+ (select x 2) (select y 2))
+                  (+ (select x 3) (select y 3)) o)))
+      (define bvand::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (= z (helper myand x y))))
+      (define bvxor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (= z (helper myxor x y))))
+      (define bvadd::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (or 
+         (and (= (select x 4) myxor)
+              (= (select y 4) myand)
+              (= (* 2 (select x 1)) (select y 1))
+              (= (* 2 (select x 2)) (select y 2))
+              (= z (tuple-update (tuple-update x 3 (+ (select x 3) (select y 3))) 4 plus)))
+         (and (= z (helper plus x y))
+              (< (select y 1) 1) (< (select y 2) 1) ))))
+      (define bvsub::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (= z (helper minus  x y))))
+      (define bvshr::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y (mk-tuple (/ (select x 1) 2) 
+                       (/ (select x 2) 2)
+                       (+ (select x 3) (/ 1 2))
+                       (select x 4)))))
+      (define bvnot::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y (tuple-update x 4 mynot))))
+      (define bvneg::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y (tuple-update x 4 myneg))))
+    )
+    (ensure (and 
+      (= (typ Lx 1) (mk-tuple 1 0 0 plus) )
+      (= (typ Ly 1) (mk-tuple 0 1 0 plus) )
+      (= (typ l1 na) (mk-tuple (/ 1 2) (/ 1 2) (/ 1 2) plus) ))
+    )
+  )
+
+
+)
+
+

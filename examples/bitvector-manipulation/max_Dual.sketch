@@ -1,0 +1,121 @@
+(max_sketch
+
+  (comment "Max of two integers")
+  (comment "Usage: python Synudic.py max.sketch na=4")
+  (comment "type: boolean denoting if input is used")
+
+  (library
+    (bvand 2)
+    (bvxor 2)
+    (bvshr 1)
+    (bvadd 2)
+    (bvsub 2)
+    (bvge  2)
+    (bvnot 1)
+    (bvneg 1)
+    (bvone 1)
+    (identity 1)
+  )
+
+
+  (dual typ
+    (decls
+      (define-type typ (scalar a b ab c0 c1 unknown))
+      (define bvand::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+       (or (= z unknown)
+           (and (= z c0) (or (= x c0) (= y c0)))
+           (and (= z x) (= y c1))
+           (and (= z y) (= x c1)))))
+
+      (define bvxor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+       (or (= z unknown)
+           (and (= z ab) (= x a) (= y b))
+           (and (= z a) (= x ab) (= y b))
+           (and (= z b) (= x ab) (= y a))
+           (and (= z x) (= y c0))
+           (and (= z y) (= x c0)))))
+
+      (define bvadd::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (= z unknown)))
+      (define bvsub::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (= z unknown)))
+      (define bvge::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+       (or (= z unknown)
+           (and (= z c1) (= x a) (= y b)))))
+
+      (define bvshr::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y unknown)))
+      (define bvnot::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y unknown)))
+      (define bvneg::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y unknown)))
+      (define identity::(-> typ typ bool) (lambda (x::typ y::typ) (= y x)))
+      (define bvone::(-> typ typ bool) (lambda (x::typ y::typ) 
+        (= y c1)))
+    )
+
+    (ensure
+     (and 
+      (= (typ Lx 1) a)
+      (= (typ Ly 1) b)
+      (= (typ l1 na) a))
+    )
+  )
+
+  (dual typt
+    (decls
+      (define-type typt (scalar p q pq c00 c11 unknownt))
+      (define bvand::(-> typt typt typt bool) (lambda (x::typt y::typt z::typt) 
+       (or (= z unknownt)
+           (and (= z c00) (or (= x c00) (= y c00)))
+           (and (= z x) (= y c11))
+           (and (= z y) (= x c11)))))
+
+      (define bvxor::(-> typt typt typt bool) (lambda (x::typt y::typt z::typt) 
+       (or (= z unknownt)
+           (and (= z pq) (= x p) (= y q))
+           (and (= z p) (= x pq) (= y q))
+           (and (= z q) (= x pq) (= y p))
+           (and (= z x) (= y c00))
+           (and (= z y) (= x c00)))))
+
+      (define bvadd::(-> typt typt typt bool) (lambda (x::typt y::typt z::typt) 
+        (= z unknownt)))
+      (define bvsub::(-> typt typt typt bool) (lambda (x::typt y::typt z::typt) 
+        (= z unknownt)))
+      (define bvge::(-> typt typt typt bool) (lambda (x::typt y::typt z::typt) 
+       (or (= z unknownt)
+           (and (= z c00) (= x p) (= y q)))))
+
+      (define bvshr::(-> typt typt bool) (lambda (x::typt y::typt) 
+        (= y unknownt)))
+      (define bvnot::(-> typt typt bool) (lambda (x::typt y::typt) 
+        (= y unknownt)))
+      (define bvneg::(-> typt typt bool) (lambda (x::typt y::typt) 
+        (= y unknownt)))
+      (define identity::(-> typt typt bool) (lambda (x::typt y::typt) (= y x)))
+      (define bvone::(-> typt typt bool) (lambda (x::typt y::typt) 
+        (= y c11)))
+    )
+
+    (ensure
+     (and 
+      (= (typt Lx 1) p)
+      (= (typt Ly 1) q)
+      (= (typt l1 na) q))
+    )
+  )
+
+  (parameters na)
+
+
+
+  (blocks
+    (Lx 1 ((input x::true)))
+    (Ly 1 ((input y::true)))
+    (l1 na ((bvand (Lx Ly -) (Lx Ly -)) (bvxor (Lx Ly -) (Lx Ly -)) (bvge (Lx Ly -) (Lx Ly -)) (bvadd (Lx Ly -) (Lx Ly -)) ))
+  )
+
+)
+
+

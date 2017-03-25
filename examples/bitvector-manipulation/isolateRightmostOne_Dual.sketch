@@ -73,7 +73,7 @@
     (ensure
      (and 
        (= (typ Lx 1) x100)
-       (= (typ l1 na) x000))
+       (= (typ l1 na) c0100))
     )
   )
 )
