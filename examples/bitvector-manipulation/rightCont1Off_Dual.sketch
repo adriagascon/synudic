@@ -1,0 +1,69 @@
+(rightmost1sOff_sketch
+
+  (comment "Turnoff rightmost contiguous 1 bits")
+  (comment "Usage: python src/main.py rightCont1Off_Dual.sketch na=4")
+  ;(comment "type: x01*10* -> x00*00*")
+
+  (parameters na)
+
+  (library
+    (bvand 2)
+    (bvxor 2)
+    (bvor 2)
+    (bvshr 1)
+    (bvsub 1)
+    (bvnot 1)
+    (bvadd 1)
+  )
+
+  (blocks
+    (Lx 1 ((input x)))
+    (l1 na ((bvand (Lx -) (Lx -)) (bvxor (Lx -) (Lx -)) (bvshr (Lx -)) (bvsub (Lx -)) (bvnot (Lx -)) (bvadd (Lx -)) (bvor (Lx -) (Lx -)) ))
+  )
+
+  (dual typ
+    (decls
+      (define-type typ (scalar x01_10_ x01_01_ x01_00_ x01_11_ x10_00_ x00_00_ unknown))
+      (define bvsub::(-> typ typ bool) (lambda (x::typ z::typ) 
+          (or
+            (= z unknown)
+            (and (= z x01_01_) (= x x01_10_)))))
+      (define bvadd::(-> typ typ bool) (lambda (x::typ z::typ) 
+          (or
+            (= z unknown)
+            (and (= z x01_10_) (= x x01_01_))
+            (and (= z x10_00_) (= x x01_11_)))))
+
+      (define bvand::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (or
+          (= z unknown)
+          (and (= z x) (= x y))
+          (and (= z x01_00_) (= x x01_10_) (= y x01_01_))
+          (and (= z x00_00_) (= x x01_10_) (= y x10_00_)))))
+          ;; all other cases result in a value that already exists!!
+
+
+      (define bvxor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+          (= z unknown)))
+
+      (define bvor::(-> typ typ typ bool) (lambda (x::typ y::typ z::typ) 
+        (or
+          (= z unknown)
+          (and (= z x01_11_) (= x x01_10_) (= y x01_01_)))))
+
+      (define bvshr::(-> typ typ bool) (lambda (x::typ z::typ) 
+          (= z unknown)))
+
+      (define bvnot::(-> typ typ bool) (lambda (x::typ z::typ) 
+          (= z unknown)))
+    )
+
+    (ensure
+     (and 
+       (= (typ Lx 1) x01_10_)
+       (= (typ l1 na) x00_00_))
+    )
+  )
+)
+
+

@@ -65,4 +65,16 @@ And then we note that right-shift introduces an error of atmost 0.5 ,
 and we note equation (1) when writing the dual rules.
 
 
+For rightCont1off_Dual.sketch
+------------------------------
+If we want to switch off rightmost contiguous block of 1 bits,
+then we start with the abstract states
+x01_10_  (initial) and x00_00_ (final state),
+and we define the add1, sub1, or, and, and other bitvector
+operations on this abstraction.  In the process we generate new
+abstract states, such as, x01_01_  and so on -- note that we 
+can have at most 16 such abstract states.
+We define the operations on them, and if we are unable to represent
+the result using our abstract terms, we use "unknown".
+This abstraction is enough to synthesize the desired program.
 
