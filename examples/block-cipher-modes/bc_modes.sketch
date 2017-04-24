@@ -52,7 +52,6 @@
     (decout 1 ( (out_dec (dec)) ) )
   )
 
-  ;; check for functional correctness by synthesizing decryption alg
   (primal value
     (decls
       (define-type value (bitvector 5))

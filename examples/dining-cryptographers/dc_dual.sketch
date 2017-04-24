@@ -1,10 +1,7 @@
 (dining_cryptographers
 
-    (comment "Dining Cryptographers protocol (3 cryptographers)")
-    (comment "Usage: python Synudic.py examples/dc_dual.sketch n1=2 n2=2")
-    (comment "Time taken : smt took 0.0502138137817 seconds")
-    (comment "poly: boolean formula expressed as a polynomial, interpreted as the XOR of the monomials, where the monomials are interpreted as the AND of the literals")
-    (comment "random: bitvectors of length 3, one for each shared bits A ,B and C. A bit is set to 1 if it derives randomness with these bits.")
+
+    (parameters n1 n2)
 
     (library
       (input_a 0)
@@ -21,7 +18,7 @@
       (identity 1)
     )
 
-    (parameters n1 n2)
+
 
     (blocks
         (in_a 1 ( (input_a) ))
@@ -185,7 +182,7 @@
               ))
             
             (define getXOR3::(-> index index index poly) 
-              (lambda (x::index y::index z::index) (lambda (v::index) (or (= v x) (= v y) (= v z))))) ;;Return a polynomial with 1 at index'es x, y, z, and 0 elsewhere
+              (lambda (x::index y::index z::index) (lambda (v::index) (or (= v x) (= v y) (= v z))))) 
         )
 
         (ensure
@@ -219,7 +216,7 @@
                 (isrand (random announce_c 1))
                 (dualsourceofrandomness (random announce_a 1))
                 (dualsourceofrandomness (random announce_b 1))
-                (dualsourceofrandomness (random announce_c 1)) ;;Can change it to zero knowledge
+                (dualsourceofrandomness (random announce_c 1)) ;Can change it to zero knowledge
             )
         )
 
