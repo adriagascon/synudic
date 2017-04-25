@@ -1,8 +1,8 @@
 (oblivious_transfer_sketch
 
-  ;; (Simple) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=1 sp1=2 sp2=1 sm2=1  ;; 7 seconds
-  ;; (Pinkas) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=4 sp1=4 sp2=3 sm2=1
-  ;; (?) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=2 sp1=2 sp2=1 sm2=1
+  ;; (Simple) Usage: python src/main.py examples/oblivious-transfer/ot_simple.sketch sm1=1 cm1=1 sp1=2 sp2=1 sm2=1
+  ;; (Naoor-Pinkas) Usage: python src/main.py examples/oblivious-transfer/ot_naor-pinkas.sketch sm1=1 cm1=4 sp1=4 sp2=3 sm2=1
+  ;; (?) Usage: python src/main.py examples/oblivious-transfer/ot_simple.sketch sm1=1 cm1=2 sp1=2 sp2=1 sm2=1
 
     
   (parameters sm1 cm1 sp1 sp2 sm2)
