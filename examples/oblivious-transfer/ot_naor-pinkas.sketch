@@ -1,0 +1,237 @@
+(oblivious_transfer_sketch
+
+  ;; (Simple) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=1 sp1=2 sp2=1 sm2=1  ;; 7 seconds
+  ;; (Pinkas) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=4 sp1=4 sp2=3 sm2=1
+  ;; (?) Usage: python Synudic.py examples/ot_w4.sketch sm1=1 cm1=2 sp1=2 sp2=1 sm2=1
+
+    
+  (parameters sm1 cm1 sp1 sp2 sm2)
+
+  (library
+    (identity 1)
+    (noop 0)
+    (branch1Add 1)
+    (branch1Mul 0)
+    (reverse 1)
+    (gmulsender 1)
+    (gmulchooser 1)
+    (gaddsender 2)
+    (gsubsender 2)
+    (pickabc 0)
+    (pickqrs 0)
+  )
+
+
+  (blocks
+    (senderMessage1  sm1 ( (noop) 
+                           
+                         ))
+
+    (chooserMessage1 cm1 ( (pickabc)
+                           (branch1Add (senderMessage1))		
+                           (branch1Mul)  			
+                           (reverse (-))
+                          ))
+
+    (senderPriv1     sp1 ( (gmulsender (chooserMessage1 ) ) ))
+    (senderPriv2     sp2 ( (gaddsender (senderPriv1) (senderPriv1))
+                           (gsubsender (senderPriv1) (senderPriv1)) ))
+    (senderMessage2  sm2 ( (noop) 
+			   (identity (senderPriv2)) ))
+
+    (senderKey1      1   ( (identity (senderPriv2) ) ))
+    (senderKey2      1   ( (identity (senderPriv2 senderPriv1) ) ))
+
+    (chooserOut      1   ( (gmulchooser (senderMessage1 senderMessage2) ) ))
+  )
+
+  (dual typ
+    (decls
+      (define-type typ (tuple real real))
+
+
+
+      (define hasValue::(-> typ bool)
+        (lambda (x::typ) (not (and (= (select x 1) -43) (= (select x 2) -43)))))
+
+
+      (define canDoOp::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+          (and (hasValue x) (hasValue y))))
+
+
+
+      (define pickabc::(-> typ bool) 
+       (lambda (x::typ) 
+        (and (= (select x 1) (select x 2))
+         (or (= (select x 1)  29) (= (select x 1)  71) 
+             ;(= (select x 1)  23)
+          )))) 
+
+
+      (define pickqrs::(-> typ bool) 
+       (lambda (x::typ) 
+        (and (= (select x 1) (select x 2)) (= (select x 1) 83))))
+         ;(or (= (select x 1) 13) (= (select x 1) 83) (= (select x 1) 11))
+
+      (define identity::(-> typ typ bool)
+        (lambda (x::typ z::typ)
+          (and (hasValue x) (= x z))))
+
+
+      (define noop::(-> typ bool)
+        (lambda (x::typ)
+          (= x (mk-tuple -43 -43))))
+
+      (define gaddsender::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and (canDoOp x y)
+               (or (and (= (select z 1) (+ (select x 1) (select y 1))) 
+                        (= (select z 2) (+ (select x 2) (select y 2))))
+                   (and (= (select z 1) (+ (select x 1) 11)) 
+                        (= (select z 2) (+ (select x 2) 11)))))))
+               ;(and (= (select z 1) (+ (select x 1) 13)) (= (select z 2) (+ (select x 2) 13)))
+               ;(and (= (select z 1) (+ (select x 1)  83)) (= (select z 2) (+ (select x 2)  83)))
+               ;(and (= (select z 1) (+ (select x 1) 11)) (= (select z 2) (+ (select x 2) 11)))
+
+      (define gsubsender::(-> typ typ typ bool)
+        (lambda (x::typ y::typ z::typ)
+          (and (canDoOp x y)
+               (= (select z 1) (- (select x 1) (select y 1))) 
+               (= (select z 2) (- (select x 2) (select y 2))))))
+               ;(and (= (select z 1) (- (select x 1) 13)) (= (select z 2) (- (select x 2) 13)))
+               ;(and (= (select z 1) (- (select x 1)  83)) (= (select z 2) (- (select x 2)  83)))
+               ;(and (= (select z 1) (- (select x 1) 11)) (= (select z 2) (- (select x 2) 11)))
+
+      (define gmulsender::(-> typ typ bool)
+        (lambda (x::typ z::typ)
+          (and (canDoOp x x) 
+           (or ;(and (= (select z 1) (* (select x 1) 13)) (= (select z 2) (* (select x 2) 13)))
+               (and (= (select z 1) (* (select x 1)  83)) (= (select z 2) (* (select x 2)  83)))
+               (and (= (select z 1) (* (select x 1) 11)) (= (select z 2) (* (select x 2) 11)))
+               (and (= (select z 1) (*  83  83)) (= (select z 2) (*  83  83)))))))
+
+      (define gmulchooser::(-> typ typ bool)
+        (lambda (x::typ z::typ)
+          (and (canDoOp x x) 
+           (or (and (= (select z 1) (* (select x 1)  29)) (= (select z 2) (* (select x 2)  29)))
+               (and (= (select z 1) (* (select x 1)  71)) (= (select z 2) (* (select x 2)  71)))
+               ; (and (= (select z 1) (* (select x 1)  23)) (= (select z 2) (* (select x 2)  23)))
+            ))))
+
+
+      (define branch1Add::(-> typ typ bool)
+        (lambda (x::typ z::typ)
+          (and (canDoOp x x) (= (select z 1) (+ (select x 1)  29)) 
+               (or (= (select z 2)  29)
+                   (= (select z 2)  71)))))
+      (define reverse::(-> typ typ bool)
+        (lambda (x::typ y::typ)
+         (and (not (= (select x 1) (select x 2)))
+              (= (select y 2) (select x 1))
+              (= (select y 1) (select x 2)))))
+
+      (define branch1Mul::(-> typ bool)
+        (lambda (z::typ) (and (or (= (select z 1) (*  29  71)) 
+				  (= (select z 1) (+  29  71)))
+                              (or (= (select z 2)  23)
+                                  (= (select z 2)  29)))))
+
+
+      (define extract::(-> real real)
+        (lambda (x::real)
+          (let ((x1 (if (divides 23 x) (/ x 23) x))	
+                (x10 (if (divides 94 x1) (/ x1 94) x1))	
+                (x11 (if (divides 52 x10) (/ x10 52) x10))	
+                (x2 (if (divides 29 x11) (/ x11 29) x11))  
+                (x3 (if (divides 71 x2) (/ x2 71) x2))  
+                (x4 (if (divides 24 x3) (/ x3 24) x3))	
+                (x5 (if (divides 30 x4) (/ x4 30) x4))	
+                (x6 (if (divides 72 x5) (/ x5 72) x5))	
+                (x7 (if (divides 22 x6) (/ x6 22) x6))	
+                (x8 (if (divides 28 x7) (/ x7 28) x7))	
+                (x9 (if (divides 70 x8) (/ x8 70) x8))	
+                (xn (if (divides  2 x9) (/ x9  2) x9)))	
+            xn)))
+
+      
+      
+      
+      
+      (define d1::(-> real real bool)
+        (lambda (target::real x::real)
+          (let ((x6 (extract x))
+                (target1 (extract target)))
+           (or (= target1 x6) (= target1 1)
+            (= target1 (+ x6  29)) (= target1 (- x6  29))
+            (= target1 (+ x6  71)) (= target1 (- x6  71)) 
+            (= target1 (+ x6  23)) (= target1 (- x6  23)) 
+           ))))
+
+    ) 
+
+    (ensure
+      (and
+        (not (= (typ senderKey1 1) (typ senderKey2 1)))
+        (not (= (+ (select (typ senderKey1 1) 1) (select (typ senderKey2 1) 1)) 0))
+        (not (= (+ (select (typ senderKey1 1) 1) (select (typ senderKey1 1) 2)) 0))
+
+        
+        (or (= (select (typ senderMessage1 1) 1) -43) 
+            (= (select (typ senderMessage2 1) 1) -43))
+
+        
+        (foreach ((x chooserMessage1)
+                  (y chooserMessage1))
+            (or (= (typ x) (typ y)) 
+                (= (select (typ x) 1) (select (typ x) 2)) 
+                (and 
+                   (not (= (select (typ x) 1) (select (typ y) 1) ))
+                   (not (= (select (typ x) 2) (select (typ y) 2) )))))
+
+        
+        (foreach ((x chooserMessage1)
+                  (y senderMessage1 senderMessage2))
+            (not (= (select (typ x) 1) (select (typ y) 1))))
+
+        (foreach ((x chooserMessage1)
+                  (y senderMessage1 senderMessage2))
+            (not (= (select (typ x) 2) (select (typ y) 1))))
+
+        
+        (= (select (typ chooserOut 1) 1) (select (typ senderKey1 1) 1))
+
+        
+        (foreach ((x senderMessage1 senderMessage2 chooserMessage1 senderKey1))
+            (not (= (select (typ senderKey2 1) 1) (select (typ x) 1))))
+        (not (= (select (typ senderKey2 1) 1)  29))
+        (not (= (select (typ senderKey2 1) 1)  71))
+        (not (= (select (typ senderKey2 1) 1)  23))
+
+        (=> (not (= (select (typ senderMessage1 1) 1) -43))
+            (not (d1 (select (typ senderKey2 1) 1) (select (typ senderMessage1 1) 1))))
+        (=> (not (= (select (typ senderMessage2 1) 1) -43))
+            (not (d1 (select (typ senderKey2 1) 1) (select (typ senderMessage2 1) 1))))
+
+      
+        (= (select (typ chooserOut 1) 2) (select (typ senderKey2 1) 2))
+
+        
+        (foreach ((x senderMessage1 senderMessage2 chooserMessage1 senderKey2))
+            (not (= (select (typ senderKey1 1) 2) (select (typ x) 2))))
+        (not (= (select (typ senderKey1 1) 2)  29))
+        (not (= (select (typ senderKey1 1) 2)  71))
+        (not (= (select (typ senderKey1 1) 2)  23))
+
+        (=> (not (= (select (typ senderMessage1 1) 1) -43))
+            (not (d1 (select (typ senderKey1 1) 2) (select (typ senderMessage1 1) 2))))
+        (=> (not (= (select (typ senderMessage2 1) 1) -43))
+            (not (d1 (select (typ senderKey1 1) 2) (select (typ senderMessage2 1) 2))))
+
+        
+        
+
+      )
+    ) 
+  )
+)
