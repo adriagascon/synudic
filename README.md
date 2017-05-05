@@ -18,11 +18,10 @@ INSTALLATION:
 USING SYNUDIC:
 
 1. Create a sketch
-   For example, see files in directory examples/
-   For example, see average.sketch and oeap.sketch
+   For example, see files in directory examples/bitvector-manipulation/average.sketch and examples/block-cipher-modes/bc_modes_noprimal.sketch
 
 2. Run the program thus:
-   `python src/main.py examples/oeap.sketch na=4 nb=2`
+   `python src/main.py examples/bitvector-manipulation/average.sketch na=4`
 
 DETAILS:
 

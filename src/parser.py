@@ -69,14 +69,13 @@ class Sketch:
                     line_size = 1
                 elif len(c.param_constraint) > 1:
                     line_size = reduce(
-                        lambda x, y: len(x) * len(y), c.param_constraint)
+                        lambda x, y: x * len(y), c.param_constraint, 1)
                 else:
                     line_size =\
                         len(c.param_constraint[0]) if c.param_constraint else 1
-                #print line_size
                 line_sizes.append(line_size)
-            size[b.name] = sum(line_sizes)*b.length
-            #print b.name, b.length, b.is_input, size[b.name]
+            size[b.name] = b.length * reduce(lambda x, y: x * y, line_sizes, 1)
+            #print b.name, b.length, b.is_input, size[b.name], b.length
             block_sizes.append(size[b.name])
         return reduce(lambda x, y: x * y, block_sizes, 1)
 
