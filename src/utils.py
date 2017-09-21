@@ -96,6 +96,8 @@ def expr2str(e):
         return e
     elif isinstance(e, int):
         return str(e)
+    elif isinstance(e, float):
+        return str(e)
     else:
         l = [ expr2str(x) for x in e ]
         return '({0})'.format(' '.join(l))
